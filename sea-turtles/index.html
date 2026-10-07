@@ -306,6 +306,21 @@ mark.flash{animation:markFlash .5s 4}
   #printView h1{font-size:44px;text-align:center;margin:0}
   #printView .by{text-align:center;font-size:24px;margin:6px 0 30px}
   #printView p{font-size:28px;line-height:1.8}
+  #printView{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printView .hwHead{display:flex;gap:24px;font-size:22px;font-weight:700;color:#e8332f;margin-bottom:14px}
+  #printView .hwHead span{flex:1;border-bottom:3px solid #e8332f;padding-bottom:2px}
+  #printView .hwHead span.d{flex:.6}
+  #printView .hwTitle{font-size:24px;text-align:center;margin:0 0 12px;color:#222}
+  #printView .hwSec{break-inside:avoid;page-break-inside:avoid;margin-bottom:10px}
+  #printView .hwModel{font-size:19px;color:#333;margin-bottom:4px}
+  #printView .hw{position:relative;height:1in;margin:2px 0 10px}
+  #printView .hw i{position:absolute;left:0;right:0}
+  #printView .hw .t{top:0;border-top:3px solid #4aa8ec}
+  #printView .hw .m{top:.48in;border-top:3px dashed #6fd3c0}
+  #printView .hw .b{top:.96in;border-top:3px solid #e8332f}
+  #printView .hwPage{break-before:page;page-break-before:always}
+  #printView .hwBox{height:5.2in;border:3px solid #e8332f;border-radius:4px;margin:6px 0 16px;position:relative}
+  #printView .hwBox em{position:absolute;left:12px;top:8px;font-style:normal;color:#999;font-size:16px}
   #printView .lbl{font-size:14px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-top:18px}
 }
 </style>
@@ -800,6 +815,9 @@ function Victory(){const el=$('#victory');const body=[S.starter,...S.facts,S.end
  el.innerHTML=`<div class="wrap center"><div class="bigTitle" style="font-size:clamp(44px,9vw,90px)">VICTORY ISLAND! 🏆</div>
   <div style="width:min(300px,70vw);margin:10px auto" class="glowRing">${rider(gearOn(),'bobbing')}</div>
   <div class="finalStory" style="text-align:left"><h2>${esc(S.title||'My Sea Turtle Story')}</h2><div class="by">by ${esc(S.name||'')}</div><p>${esc(body)}</p></div>
+  <div class="sectionTitle" style="justify-content:center">✏️ Handwriting Mission ${spk('Handwriting mission! Your teacher wants to see your handwriting. Print your writing paper. Then tap Copy with me, and write each sentence with your pencil!')}</div>
+  <div class="row c" style="margin-bottom:10px"><button class="btn purple huge" id="hwPrint">🖨️ Print my paper</button><button class="btn pink huge" id="hwGo">✏️ Copy with me!</button></div>
+  <div class="sectionTitle" style="justify-content:center;font-size:28px">🎨 Bonus: make a poster</div>
   <div class="row c" style="margin:22px 0"><button class="btn green huge" id="canvaBtn">📋 COPY &amp; OPEN CANVA 🎨</button>${spk('Tap this big button. It copies your story and opens Canva!')}</div>
   <div class="row c" style="margin:-6px 0 22px"><button class="btn pink small" id="copyBtn">📋 Just copy my story</button>${spk(body?S.title+'. By '+S.name+'. '+body:'')}</div>
   <div class="sectionTitle" style="justify-content:center">🎨 Canva Mission ${spk('Canva mission! Tap the speaker on each step. Check it off when you are done!')}</div>
@@ -807,6 +825,7 @@ function Victory(){const el=$('#victory');const body=[S.starter,...S.facts,S.end
   <div class="row c" style="margin-top:22px"><button class="btn blue" id="vMap">🗺️ Map</button></div></div>`;
  confettiBurst(5000);sfx('fanfare');autoSay('Victory! You wrote your own sea turtle story, Noah! Tap Copy My Story, then go to Canva!');
  $('#copyBtn').onclick=copyStory;
+ $('#hwPrint').onclick=printPaper;$('#hwGo').onclick=()=>copyAlong(0);
  $('#canvaBtn').onclick=()=>{const txt=storyText();
   // copy right away (synchronously) so the browser still counts it as his tap, then open Canva in a new tab
   const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove();
@@ -825,6 +844,27 @@ async function copyStory(){const txt=storyText();let ok=false;
  const b=$('#copyBtn');if(ok){b.textContent='✅ COPIED!';sfx('coin');confettiBurst(1200);speak('Copied! Now go to Canva and paste it!')}else{b.textContent='Ask a grown-up to copy 🙂';speak('Hmm. Ask a grown up to help copy it.')}
  setTimeout(()=>{if($('#copyBtn'))$('#copyBtn').textContent='📋 COPY MY STORY'},3000)}
 
+
+/* ---------- HANDWRITING MISSION (required by teacher: portfolio must be handwritten) ---------- */
+function hwParts(){return [['Title',S.title],['Beginning',S.starter],...S.facts.map((f,i)=>['Fact '+(i+1),f]),['Ending',S.ending]].filter(p=>(p[1]||'').trim())}
+function printPaper(){const row='<div class="hw"><i class="t"></i><i class="m"></i><i class="b"></i></div>';
+ const head='<div class="hwHead"><span>NAME:</span><span class="d">DATE:</span></div>';
+ $('#printView').innerHTML=head+`<div class="hwTitle">🐢 My Information Text</div>`+
+  hwParts().map(([l,t])=>`<div class="hwSec"><div class="hwModel"><b>${l}:</b> ${esc(t.trim())}</div>${row.repeat(l==='Title'?1:Math.max(2,Math.ceil(wc(t)/4)))}</div>`).join('')+
+  `<div class="hwPage">${head}<div class="hwBox"><em>Draw your sea turtle. Label: shell, flipper, head.</em></div>${row}${row}</div>`;
+ window.print()}
+function copyAlong(i){const parts=hwParts(),R=$('#reward');
+ if(i>=parts.length){R.innerHTML=`<div class="rewardBox"><h2>✏️ ALL WRITTEN! ✏️</h2><div class="gearNew" style="font-size:80px">🏆</div><div class="gearNew">Show your paper to Mom or Dad!</div><button class="btn green huge" id="cwDone">YAY! ✔</button></div>`;
+  R.classList.add('on');sfx('fanfare');confettiBurst(2500);addCoins(30);speak('You wrote your whole story by hand! Amazing! Show your paper to Mom or Dad!');$('#cwDone').onclick=()=>R.classList.remove('on');return}
+ const [l,t]=parts[i];
+ R.innerHTML=`<div class="rewardBox" style="max-width:820px"><div class="gearNew">✏️ ${i+1} of ${parts.length}: ${l}</div>
+  <div style="background:#fff;border-radius:24px;padding:20px;font-size:clamp(28px,5vw,44px);line-height:1.4;color:#0d2b45;margin:10px 0;border:4px solid #ffd84a">${esc(t.trim())}</div>
+  <div class="row c">${spk(t)}<button class="btn small" id="cwStop">✖ Stop</button><button class="btn green huge" id="cwNext">I wrote it! ✅</button></div>
+  <div class="coachNote" style="margin-top:10px">Big letter at the start. Spaces between words. Dot at the end.</div></div>`;
+ R.classList.add('on');
+ speak((i===0?'Get your pencil and paper! ':'')+`Write your ${l.toLowerCase()} on the lines. ... ${t} ... Tap the speaker to hear it again. Tap I wrote it when you are done!`);
+ $('#cwStop').onclick=()=>{R.classList.remove('on');if('speechSynthesis' in window)speechSynthesis.cancel()};
+ $('#cwNext').onclick=()=>{sfx('coin');addCoins(5);copyAlong(i+1)}}
 /* ---------- CONFETTI ---------- */
 const cv=$('#confetti'),cx=cv.getContext('2d');let parts=[],confUntil=0,confRAF=null;
 function confettiBurst(ms){cv.width=innerWidth;cv.height=innerHeight;confUntil=Math.max(confUntil,performance.now()+ms);
@@ -849,14 +889,14 @@ function openCoach(){const C=$('#coach');
   <h3>Levels</h3>${LEVELS.map((L,i)=>`<div class="lvRow"><span>${L.e} ${i+1}. ${L.n} — ${S.done[i]?'✅ done':unlocked(i)?'🔓 open':'🔒 locked'}</span><span><button class="cb" data-u="${i}">${unlocked(i)?'Open':'Unlock'}</button></span></div>`).join('')}
   <div class="lvRow"><span>🏆 Victory Island</span><button class="cb" id="cVic">Open</button></div>
   <h3>Settings</h3><label><input type="checkbox" id="cOv" ${S.override?'checked':''}> Coach override: let him continue even if the sentence checks aren't green</label>
-  <h3>Print</h3><button class="cb" id="cPrint">🖨️ Print "My Sea Turtle Story"</button> <button class="cb" id="cCopy">📋 Copy story text</button>
+  <h3>Print</h3><button class="cb" id="cPaper">✏️ Print handwriting paper</button> <button class="cb" id="cPrint">🖨️ Print "My Sea Turtle Story"</button> <button class="cb" id="cCopy">📋 Copy story text</button>
   <h3>Danger zone</h3><button class="cb danger" id="cReset">Reset game (erase everything)</button></div>`;
  C.classList.add('on');
  $('#cClose').onclick=()=>C.classList.remove('on');
  C.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const i=+b.dataset.u;S.unlocked[i]=1;save();C.classList.remove('on');showScreen('lv'+i)});
  $('#cVic').onclick=()=>{C.classList.remove('on');showScreen('victory')};
  $('#cOv').onchange=e=>{S.override=e.target.checked;save()};
- $('#cPrint').onclick=printStory;
+ $('#cPrint').onclick=printStory;$('#cPaper').onclick=printPaper;
  $('#cCopy').onclick=async()=>{try{await navigator.clipboard.writeText(storyText());$('#cCopy').textContent='✅ Copied'}catch(e){$('#cCopy').textContent='Copy failed'}};
  $('#cReset').onclick=()=>{if(confirm('Erase ALL of Noah\'s progress and sentences? This cannot be undone.')){localStorage.removeItem(KEY);location.reload()}}}
 function printStory(){const body=[S.starter,...S.facts,S.ending].map(x=>(x||'').trim()).filter(Boolean).join(' ');
