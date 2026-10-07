@@ -811,9 +811,9 @@ function Victory(){const el=$('#victory');const body=[S.starter,...S.facts,S.end
   // copy right away (synchronously) so the browser still counts it as his tap, then open Canva in a new tab
   const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove();
   try{navigator.clipboard&&navigator.clipboard.writeText(txt).catch(()=>{})}catch(e){}
-  window.open('https://www.canva.com/','_blank');
+  window.open('https://canva.link/a6ks6toiagcfaph','_blank');
   $('#canvaBtn').textContent='✅ COPIED! Canva is open';sfx('coin');
-  speak('Your story is copied! In Canva, make a poster. Then hold control and press V to paste your story!')};$('#vMap').onclick=()=>showScreen('map');
+  speak('Your story is copied! In Canva, click the white box. Then hold control and press V to paste your story!')};$('#vMap').onclick=()=>showScreen('map');
  el.querySelectorAll('.mItem .tick').forEach(b=>b.onclick=()=>{const it=b.closest('.mItem'),i=+it.dataset.i;
   if(S.canva.includes(i)){S.canva=S.canva.filter(x=>x!==i);it.classList.remove('done');b.textContent=''}
   else{S.canva.push(i);it.classList.add('done');b.textContent='✅';const r=b.getBoundingClientRect();burst(r.x+30,r.y+30);addCoins(5,r.x,r.y);
