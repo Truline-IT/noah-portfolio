@@ -800,12 +800,20 @@ function Victory(){const el=$('#victory');const body=[S.starter,...S.facts,S.end
  el.innerHTML=`<div class="wrap center"><div class="bigTitle" style="font-size:clamp(44px,9vw,90px)">VICTORY ISLAND! 🏆</div>
   <div style="width:min(300px,70vw);margin:10px auto" class="glowRing">${rider(gearOn(),'bobbing')}</div>
   <div class="finalStory" style="text-align:left"><h2>${esc(S.title||'My Sea Turtle Story')}</h2><div class="by">by ${esc(S.name||'')}</div><p>${esc(body)}</p></div>
-  <div class="row c" style="margin:22px 0"><button class="btn pink huge" id="copyBtn">📋 COPY MY STORY</button>${spk(body?S.title+'. By '+S.name+'. '+body:'')}</div>
+  <div class="row c" style="margin:22px 0"><button class="btn green huge" id="canvaBtn">📋 COPY &amp; OPEN CANVA 🎨</button>${spk('Tap this big button. It copies your story and opens Canva!')}</div>
+  <div class="row c" style="margin:-6px 0 22px"><button class="btn pink small" id="copyBtn">📋 Just copy my story</button>${spk(body?S.title+'. By '+S.name+'. '+body:'')}</div>
   <div class="sectionTitle" style="justify-content:center">🎨 Canva Mission ${spk('Canva mission! Tap the speaker on each step. Check it off when you are done!')}</div>
   <div class="mission" style="text-align:left">${MISSION.map((m,i)=>`<div class="mItem ${S.canva.includes(i)?'done':''}" data-i="${i}"><span class="pic">${m.e}</span><span class="t">${m.t}</span>${spk(m.say)}<button class="tick" aria-label="Done">${S.canva.includes(i)?'✅':''}</button></div>`).join('')}</div>
   <div class="row c" style="margin-top:22px"><button class="btn blue" id="vMap">🗺️ Map</button></div></div>`;
  confettiBurst(5000);sfx('fanfare');autoSay('Victory! You wrote your own sea turtle story, Noah! Tap Copy My Story, then go to Canva!');
- $('#copyBtn').onclick=copyStory;$('#vMap').onclick=()=>showScreen('map');
+ $('#copyBtn').onclick=copyStory;
+ $('#canvaBtn').onclick=()=>{const txt=storyText();
+  // copy right away (synchronously) so the browser still counts it as his tap, then open Canva in a new tab
+  const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove();
+  try{navigator.clipboard&&navigator.clipboard.writeText(txt).catch(()=>{})}catch(e){}
+  window.open('https://www.canva.com/','_blank');
+  $('#canvaBtn').textContent='✅ COPIED! Canva is open';sfx('coin');
+  speak('Your story is copied! In Canva, make a poster. Then hold control and press V to paste your story!')};$('#vMap').onclick=()=>showScreen('map');
  el.querySelectorAll('.mItem .tick').forEach(b=>b.onclick=()=>{const it=b.closest('.mItem'),i=+it.dataset.i;
   if(S.canva.includes(i)){S.canva=S.canva.filter(x=>x!==i);it.classList.remove('done');b.textContent=''}
   else{S.canva.push(i);it.classList.add('done');b.textContent='✅';const r=b.getBoundingClientRect();burst(r.x+30,r.y+30);addCoins(5,r.x,r.y);
