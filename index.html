@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Noah's World</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:'Fredoka',system-ui,sans-serif;color:#fff;overflow-x:hidden;
+ background:linear-gradient(180deg,#6ff0ff 0%,#14c3f5 30%,#0a86e0 65%,#0a3f96 100%)}
+.wrap{max-width:1000px;margin:0 auto;padding:40px 16px 80px;text-align:center;position:relative;z-index:1}
+h1{font-size:clamp(52px,11vw,110px);margin:0;line-height:.95;text-shadow:0 6px 0 #ff8a00,0 12px 0 #c2410c,0 20px 30px rgba(0,0,0,.35);transform:rotate(-3deg);animation:bob 3s ease-in-out infinite}
+.sub{display:inline-block;margin:26px 0 40px;font-size:clamp(22px,4vw,34px);font-weight:700;background:linear-gradient(#7dffa8,#1fc764);color:#064d22;padding:8px 28px;border-radius:40px;border:5px solid #fff;box-shadow:0 8px 0 #12863f}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:26px}
+.card{display:block;text-decoration:none;color:#123a5a;background:#fff;border-radius:34px;border:6px solid #fff;padding:22px 16px;box-shadow:0 12px 0 rgba(0,40,90,.3),0 20px 30px rgba(0,0,0,.2);transition:transform .15s}
+.card:hover{transform:translateY(-6px) rotate(-1deg)}
+.card:active{transform:translateY(6px)}
+.card .ico{font-size:80px;line-height:1;animation:bob 2.6s ease-in-out infinite}
+.card h2{margin:12px 0 4px;font-size:30px}
+.card p{margin:0;font-size:19px;font-weight:600;opacity:.8}
+.card .tag{display:inline-block;margin-top:14px;font-size:22px;font-weight:700;padding:10px 26px;border-radius:24px;background:linear-gradient(#ffe46b,#ffb300);color:#5a3500;box-shadow:0 6px 0 #c77c00}
+.card.soon{background:rgba(255,255,255,.35);color:#fff;border-style:dashed;pointer-events:none}
+.card.soon .ico{filter:grayscale(1);opacity:.6}
+.card.soon .tag{background:rgba(255,255,255,.3);color:#fff;box-shadow:none}
+footer{margin-top:50px;font-size:18px;opacity:.85}
+.b{position:fixed;bottom:-40px;border-radius:50%;border:2px solid rgba(255,255,255,.7);animation:rise linear infinite;z-index:0}
+@keyframes rise{to{transform:translateY(-115vh)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+h1{animation:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>NOAH'S WORLD</h1>
+  <div class="sub">🌊 My First Grade Projects 🌊</div>
+  <div class="grid">
+    <a class="card" href="sea-turtles/">
+      <div class="ico">🐢</div><h2>Sea Turtles</h2><p>My information text</p><span class="tag">▶ PLAY</span>
+    </a>
+    <div class="card soon"><div class="ico">🦖</div><h2>Coming Soon</h2><p>Next project</p><span class="tag">🔒</span></div>
+    <div class="card soon"><div class="ico">🚀</div><h2>Coming Soon</h2><p>Next project</p><span class="tag">🔒</span></div>
+  </div>
+  <footer>Made by Noah 💙</footer>
+</div>
+<script>
+for(let i=0;i<18;i++){const b=document.createElement('div');b.className='b';const s=8+Math.random()*24;
+ Object.assign(b.style,{width:s+'px',height:s+'px',left:Math.random()*100+'%',animationDuration:(8+Math.random()*8)+'s',animationDelay:(-Math.random()*12)+'s'});document.body.appendChild(b)}
+</script>
+</body>
+</html>
