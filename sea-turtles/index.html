@@ -698,15 +698,16 @@ function insertWord(ta,w){const v=ta.value,s=ta.selectionStart??v.length,e=ta.se
  const pre=before&&!/\s$/.test(before)?' ':'';const post=after&&/^[\s.,!?]/.test(after)?'':' ';ta.value=before+pre+w+post+after;const p=(before+pre+w+post).length;ta.setSelectionRange(p,p);ta.dispatchEvent(new Event('input'))}
 
 /* ---------- LEVEL 5: ENDING SPLASH ---------- */
-const L5_STARTERS=['Sea turtles need','Flippers help sea turtles','Shells help sea turtles','The most important thing is that sea turtles'];
-function L5(){const q="What is the MOST important thing about sea turtles?";const say='Last sentence! '+q+' Tap a starter. Type the rest. Then tap Dive!';
+const L5_STARTERS=['These amazing ocean animals','These shelled swimmers','Turtles of the sea','These ocean reptiles'];
+const endingOK=v=>!/\bsea\s*turtles?\b/i.test(v)&&/\b(turtles?|animals?|reptiles?|swimmers?|creatures?|they|them)\b/i.test(v);
+function L5(){const q="What is the MOST important thing about sea turtles?";const say='Last sentence! '+q+' Say sea turtles a new way, like: these amazing ocean animals. Tap a starter. Type the rest. Then tap Dive!';
  $('#lv4').innerHTML=`<div class="wrap">${head(4,say)}
   <div class="cliffScene" id="scene"><div class="cliff"></div><div id="diveRider">${rider(gearOn(),'bobbing')}</div></div>
   <div class="q">🤔 ${q} ${spk(q)}</div>
   ${padHTML('e',{starters:L5_STARTERS,goLabel:'DIVE! 🌊',goWord:'DIVE'})}</div>`;
  autoSay(say);
  setupPad('e',{lv:4,value:S.ending,starters:L5_STARTERS,save:v=>{S.ending=v;save()},
-  checks:[{label:'✏️ 5 words or more',fn:v=>wc(v)>=5,hint:'Almost! Add a few more words!'}],
+  checks:[{label:'🔁 says sea turtles a NEW way',fn:endingOK,hint:'Say sea turtles a new way! Like: these amazing ocean animals. Tap a starter!'},{label:'✏️ 5 words or more',fn:v=>wc(v)>=5,hint:'Almost! Add a few more words!'}],
   onDone:()=>{const g=$('#eGo');g.disabled=true;const sc=$('#scene');sc.scrollIntoView({behavior:'smooth',block:'center'});sfx('jump');const r=$('#diveRider');r.innerHTML=rider(gearOn());r.classList.add('dive');
    setTimeout(()=>{sfx('splash');const big=document.createElement('div');big.className='splashBig';big.textContent='💦';sc.appendChild(big);
     for(let i=0;i<24;i++){const d=document.createElement('div');d.className='splashDrop';d.style.left='62%';d.style.top='60%';const a=-Math.PI*Math.random(),rr=80+Math.random()*140;d.style.setProperty('--dx',Math.cos(a)*rr+'px');d.style.setProperty('--dy',Math.sin(a)*rr+'px');sc.appendChild(d)}
@@ -815,6 +816,8 @@ function Victory(){const el=$('#victory');const body=[S.starter,...S.facts,S.end
  el.innerHTML=`<div class="wrap center"><div class="bigTitle" style="font-size:clamp(44px,9vw,90px)">VICTORY ISLAND! 🏆</div>
   <div style="width:min(300px,70vw);margin:10px auto" class="glowRing">${rider(gearOn(),'bobbing')}</div>
   <div class="finalStory" style="text-align:left"><h2>${esc(S.title||'My Sea Turtle Story')}</h2><div class="by">by ${esc(S.name||'')}</div><p>${esc(body)}</p></div>
+  <div class="sectionTitle" style="justify-content:center">✅ Teacher Checklist ${spk('Teacher checklist! Does your beginning sentence name the topic? Do you have at least three facts? Does your closing sentence say sea turtles in a new way?')}</div>
+  <div class="mission" style="text-align:left">${teacherChecks().map(c=>`<div class="mItem ${c.ok?'done':''}"><span class="pic">${c.e}</span><span class="t">${c.t}</span>${spk(c.say)}${c.ok?'<span class="tick" style="background:#2ecc71;border-color:#fff">✅</span>':`<button class="btn small blue" data-fix="${c.lv}">Fix it ➜</button>`}</div>`).join('')}</div>
   <div class="sectionTitle" style="justify-content:center">✏️ Handwriting Mission ${spk('Handwriting mission! Your teacher wants to see your handwriting. Print your writing paper. Then tap Copy with me, and write each sentence with your pencil!')}</div>
   <div class="row c" style="margin-bottom:10px"><button class="btn purple huge" id="hwPrint">🖨️ Print my paper</button><button class="btn pink huge" id="hwGo">✏️ Copy with me!</button></div>
   <div class="sectionTitle" style="justify-content:center;font-size:28px">🎨 Bonus: make a poster</div>
@@ -825,6 +828,7 @@ function Victory(){const el=$('#victory');const body=[S.starter,...S.facts,S.end
   <div class="row c" style="margin-top:22px"><button class="btn blue" id="vMap">🗺️ Map</button></div></div>`;
  confettiBurst(5000);sfx('fanfare');autoSay('Victory! You wrote your own sea turtle story, Noah! Tap Copy My Story, then go to Canva!');
  $('#copyBtn').onclick=copyStory;
+ el.querySelectorAll('[data-fix]').forEach(b=>b.onclick=()=>{sfx('jump');showScreen('lv'+b.dataset.fix)});
  $('#hwPrint').onclick=printPaper;$('#hwGo').onclick=()=>copyAlong(0);
  $('#canvaBtn').onclick=()=>{const txt=storyText();
   // copy right away (synchronously) so the browser still counts it as his tap, then open Canva in a new tab
@@ -845,6 +849,10 @@ async function copyStory(){const txt=storyText();let ok=false;
  setTimeout(()=>{if($('#copyBtn'))$('#copyBtn').textContent='📋 COPY MY STORY'},3000)}
 
 
+function teacherChecks(){const facts=S.facts.filter(f=>wc(f)>=3).length;return [
+ {e:'🚀',t:'Beginning sentence names the topic',ok:/\bsea\s*turtles?\b/i.test(S.starter)&&wc(S.starter)>5,lv:2,say:'Does your beginning sentence name the topic, sea turtles?'},
+ {e:'🧱',t:`At least 3 facts (you have ${facts})`,ok:facts>=3,lv:3,say:'Do you tell at least three facts about sea turtles?'},
+ {e:'💦',t:'Closing sentence says sea turtles a NEW way',ok:endingOK(S.ending)&&wc(S.ending)>=4,lv:4,say:'Does your closing sentence name sea turtles in different words? Like: these amazing ocean animals.'}]}
 /* ---------- HANDWRITING MISSION (required by teacher: portfolio must be handwritten) ---------- */
 function hwParts(){return [['Title',S.title],['Beginning',S.starter],...S.facts.map((f,i)=>['Fact '+(i+1),f]),['Ending',S.ending]].filter(p=>(p[1]||'').trim())}
 function printPaper(){const row='<div class="hw"><i class="t"></i><i class="m"></i><i class="b"></i></div>';
