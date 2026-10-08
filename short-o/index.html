@@ -90,6 +90,15 @@ button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
 #conf{position:fixed;inset:0;pointer-events:none;z-index:85}
 #reset{position:fixed;right:10px;bottom:10px;z-index:46;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.5);font-size:20px}
+#mud{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,#8a8f7a,#5d6655);pointer-events:none;transition:opacity 1s;z-index:0}
+#pond .pad{z-index:1}
+.deco{position:absolute;transform:translate(-50%,-50%) scale(0);font-size:clamp(34px,6.5vw,58px);z-index:2;pointer-events:none;filter:drop-shadow(0 4px 0 rgba(0,0,0,.18));transition:transform .7s cubic-bezier(.5,-.6,.5,1.8)}
+.deco.on{transform:translate(-50%,-50%) scale(1)}
+#mk{margin-top:16px;background:#fff;border-radius:28px;padding:14px 16px;box-shadow:0 8px 0 #b8e6c4;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
+#mk .ic{font-size:56px}#mk .tx{font-size:clamp(22px,4.5vw,30px);font-weight:700;text-align:left;flex:1;min-width:180px}
+#mk .cost{font-size:.8em;color:#d69e00}
+#mkBar{height:22px;background:#e3f6e8;border-radius:12px;overflow:hidden;margin-top:12px;border:3px solid #fff;box-shadow:0 4px 0 #b8e6c4}
+#mkBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2ecc71,#ffd84a);transition:width 1s}
 </style>
 </head>
 <body>
@@ -106,6 +115,8 @@ button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
 <section class="screen" id="map"><div class="wrap">
   <div class="ask">Hop to a lily pad! <button class="ear" data-say="Hop to the glowing lily pad!">👂</button></div>
   <div id="pond"></div>
+  <div id="mkBar"><i></i></div>
+  <div id="mk"></div>
 </div></section>
 
 <section class="screen" id="l1"><div class="wrap">
@@ -178,7 +189,7 @@ let timers=[];const later=(f,ms)=>timers.push(setTimeout(f,ms));
 function show(id){timers.forEach(t=>{clearTimeout(t);clearInterval(t)});timers=[];document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#'+id).classList.add('on');$('#'+id).scrollTop=0;$('#hud').style.display=id==='title'?'none':'flex';
  ({map:mapInit,l1:l1Init,l2:l2Init,l3:l3Init,l4:l4Init,l5:l5Init,win:()=>{confetti();sfx('yay');say('You did it! Last step: send your poster to your teacher. Ask Mom or Dad to help!')}}[id]||(()=>{}))()}
 $('#mapBtn').onclick=()=>{sfx('pop');show('map')};$('#muteBtn').onclick=()=>{S.muted=!S.muted;save();hud()};
-$('#playBtn').onclick=()=>{ac();sfx('ribbit');say("Ribbit! I'm Hop the frog! Frog has the short o sound. Ah! Let's hop!");show('map')};
+$('#playBtn').onclick=()=>{ac();sfx('ribbit');say("Ribbit! I'm Hop the frog! Frog has the short o sound. Ah! Help me fix up my pond. Win coins, then spend them to make it pretty!");show('map')};
 function finish(i,msg){const first=!S.done[i];S.done[i]=1;save();if(first)addCoins(20);showOv('🏆',msg,msg+' Ribbit!',()=>show(i===4?'win':'map'))}
 /* map */
 const LV=[{n:'Pop the O',i:'🫧'},{n:'Build It',i:'🔤'},{n:'Word Train',i:'🚂'},{n:'Canva Poster',i:'🎨'},{n:'Draw Words',i:'✏️'}];
@@ -189,7 +200,34 @@ function mapInit(){hud();const cur=S.done.indexOf(0);const p=$('#pond');
  `<div id="frog" style="left:${POS[cur<0?4:cur][0]}%;top:${POS[cur<0?4:cur][1]}%">🐸</div>`;
  p.querySelectorAll('.pad').forEach(b=>b.onclick=()=>{ac();const i=+b.dataset.i;if(!open(i)){sfx('boing');b.classList.add('wig');setTimeout(()=>b.classList.remove('wig'),900);say('Locked! Finish the pad before it first.');return}
   sfx('hop');const f=$('#frog');f.style.left=POS[i][0]+'%';f.style.top=POS[i][1]+'%';setTimeout(()=>show('l'+(i+1)),900)});
- if(cur<0)later(()=>say('You finished every lily pad! Tap the last pad to see how to send your poster.'),300)}
+ const k=mkDraw();
+ if(k&&k.can)later(()=>say(`You have ${S.coins} coins! Tap FIX IT to ${k.m.n.replace(/'/g,'').toLowerCase()}!`),300);
+ else if(cur<0)later(()=>say('You finished every lily pad! Tap the last pad to see how to send your poster.'),300);
+ else if(k)later(()=>say(S.mk===0&&S.coins===0?'Oh no! My pond is a mess! Hop to the glowing lily pad to win coins. Then we can fix it up!':`You need ${k.m.cost-S.coins} more coins. Hop to the glowing lily pad to win more!`),300)}
+
+
+/* pond makeover: spend coins to fix up Hop's pond (Gardenscapes style) */
+const MK=[
+ {id:'stop',ic:'🛑',n:'Put up the STOP sign',cost:10,x:7,y:14,line:'Stop! S, t, o, p. Stop has the short o sound. Ah!'},
+ {id:'clock',ic:'⏰',n:'Fix the CLOCK',cost:15,x:27,y:9,line:'Tick tock! Clock. C, l, o, c, k. Ah!'},
+ {id:'block',ic:'🧱',n:'Stack the BLOCKS',cost:15,x:52,y:12,line:'Blocks! B, l, o, c, k. Block has the short o sound!'},
+ {id:'frog',ic:'🐸',n:'Bring back Hop\'s FROG friends',cost:20,x:33,y:90,line:'My frog friends are back! Frog. F, r, o, g. Ribbit!'},
+ {id:'pot',ic:'🍲',n:'Cook soup in the POT',cost:20,x:88,y:12,line:'Soup in the pot! The pot is hot. Do not grab it!'},
+ {id:'box',ic:'📦',n:'Fill the toy BOX',cost:20,x:52,y:43,line:'A toy box! Box. B, o, x. Ah!'},
+ {id:'fox',ic:'🦊',n:'Invite the FOX',cost:25,x:70,y:91,line:'Hi fox! Fox. F, o, x. Fox has the short o sound!'},
+ {id:'dog',ic:'🐶',n:'Build a home for the DOG',cost:25,x:94,y:90,line:'A happy dog! Dog. D, o, g. Our pond is all fixed up!'}];
+if(typeof S.mk!=='number')S.mk=0;
+function mkDraw(){const p=$('#pond');p.querySelectorAll('.deco,#mud').forEach(d=>d.remove());p.insertAdjacentHTML('afterbegin','<div id="mud"></div>');
+ MK.forEach((m,i)=>p.insertAdjacentHTML('beforeend',`<div class="deco ${i<S.mk?'on':''}" id="d-${m.id}" style="left:${m.x}%;top:${m.y}%">${m.ic}</div>`));
+ const f=S.mk/MK.length;$('#mud').style.opacity=.7*(1-f);$('#mkBar i').style.width=f*100+'%';
+ const m=MK[S.mk],box=$('#mk');
+ if(!m){box.innerHTML='<span class="ic">🏆</span><span class="tx">Hop\'s pond is all fixed up!</span>';return null}
+ const can=S.coins>=m.cost;
+ box.innerHTML=`<span class="ic">${m.ic}</span><span class="tx">${m.n}<br><span class="cost">Costs 🪙 ${m.cost}</span></span><button class="ear" data-say="${m.n.replace(/'/g,'')}. It costs ${m.cost} coins.">👂</button>${can?'<button class="big gold pulse" id="mkGo">FIX IT!</button>':''}`;
+ if(can)$('#mkGo').onclick=mkDo;return {m,can}}
+function mkDo(){const m=MK[S.mk];if(!m||S.coins<m.cost)return;ac();S.coins-=m.cost;S.mk++;save();hud();sfx('yay');mkDraw();
+ const r=$('#d-'+m.id).getBoundingClientRect();burst(r.x+r.width/2,r.y+r.height/2,['✨','🌟','💚','🪙'],18);say(m.line);
+ if(S.mk>=MK.length)later(()=>showOv('🏞️','Pond makeover done!','Hooray! You fixed up the whole pond! Hop is so happy!',()=>show('map')),3200)}
 
 /* L1: pop the short o words */
 const SHORTO=[{w:'frog',e:'🐸'},{w:'stop',e:'🛑'},{w:'clock',e:'⏰'},{w:'block',e:'🧱'},{w:'hot',e:'🔥'},{w:'pot',e:'🍲'},{w:'dog',e:'🐶'},{w:'fox',e:'🦊'},{w:'box',e:'📦'}];
