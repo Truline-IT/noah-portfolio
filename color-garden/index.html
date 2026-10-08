@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Color Garden">
+<meta name="theme-color" content="#7dd87d">
+<title>Noah's Color Garden</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#3b2a5a;--R:#ff3b30;--Y:#ffd60a;--B:#1e7bff;--O:#ff8c1a;--G:#2ecc40;--V:#9b4dff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:'Fredoka',system-ui,sans-serif;color:var(--ink);background:linear-gradient(#fff3d6,#ffe0f0);touch-action:manipulation}
+button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
+#hud{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;justify-content:space-between;align-items:center;padding:10px 14px}
+.round{width:72px;height:72px;border-radius:24px;background:#fff;font-size:36px;box-shadow:0 7px 0 #e7c9ff,0 10px 18px rgba(0,0,0,.12)}
+.round:active{transform:translateY(6px);box-shadow:0 1px 0 #e7c9ff}
+.stars{display:flex;align-items:center;gap:8px;background:linear-gradient(#fff7c2,#ffd84a);font-weight:700;font-size:34px;padding:8px 24px 8px 14px;border-radius:40px;box-shadow:0 7px 0 #d69e00;border:4px solid #fff;color:#6b4200}
+.stars.bump{animation:bump .4s}
+@keyframes bump{50%{transform:scale(1.25)}}
+.screen{position:fixed;inset:0;display:none;overflow-y:auto;padding:96px 14px 120px}
+.screen.on{display:block;animation:fade .35s}
+@keyframes fade{from{opacity:0;transform:scale(.97)}}
+.wrap{max-width:920px;margin:0 auto;text-align:center}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes wig{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes jump{0%,100%{transform:translateY(0)}40%{transform:translateY(-40px) scale(1.12)}}
+.wig{animation:wig .45s 2}
+.big{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:84px;padding:12px 34px;border-radius:30px;border:5px solid #fff;font-size:34px;font-weight:700;color:#fff;box-shadow:0 9px 0 rgba(0,0,0,.2),0 14px 22px rgba(0,0,0,.15)}
+.big:active{transform:translateY(7px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.green{background:linear-gradient(#7dffa8,#1fc764);color:#064d22}.pink{background:linear-gradient(#ffb0cb,#ff4f8b)}.purple{background:linear-gradient(#c6a8ff,#8e5cff)}.gold{background:linear-gradient(#ffe46b,#ffb300);color:#5a3500}.blue{background:linear-gradient(#8ee8ff,#2a9df4)}
+.huge{font-size:48px;min-height:110px;padding:16px 60px;border-radius:40px}
+.pulse{animation:pulse 1.2s infinite}
+.ear{width:70px;height:70px;border-radius:50%;background:#ffd84a;font-size:34px;box-shadow:0 6px 0 #d69e00;flex:0 0 auto}
+.ear:active{transform:translateY(5px);box-shadow:0 1px 0 #d69e00}
+.title{font-size:clamp(46px,10vw,96px);font-weight:700;line-height:.95;color:#fff;text-shadow:0 5px 0 #ff4f8b,0 10px 0 #8e5cff,0 16px 24px rgba(0,0,0,.2);animation:bob 3s ease-in-out infinite;margin-top:10px}
+.title span:nth-child(1){color:#ff3b30}.title span:nth-child(2){color:#ff8c1a}.title span:nth-child(3){color:#ffd60a}.title span:nth-child(4){color:#2ecc40}.title span:nth-child(5){color:#1e7bff}
+/* ---------- garden scene ---------- */
+.scene{position:relative;width:100%;aspect-ratio:16/11;border-radius:36px;overflow:hidden;border:6px solid #fff;box-shadow:0 12px 0 #e7c9ff,0 18px 30px rgba(0,0,0,.15);background:#cfd3da}
+.sky{position:absolute;inset:0 0 38% 0;background:linear-gradient(#d8dbe0,#c3c7ce);transition:background 1.5s}
+.sky.on{background:linear-gradient(#ff7eb3 0%,#ff9f43 45%,#ffd36b 100%)}
+.ground{position:absolute;left:0;right:0;bottom:0;height:40%;background:#a9adb3;transition:background 1.5s;border-radius:50% 50% 0 0/14% 14% 0 0}
+.ground.on{background:linear-gradient(#5fdc6a,#2fae4b)}
+.pond{position:absolute;left:38%;bottom:6%;width:30%;height:14%;border-radius:50%;background:#9aa0a8;transition:background 1.5s;border:5px solid #fff}
+.pond.on{background:radial-gradient(#7fd3ff,#1e7bff)}
+.fence{position:absolute;left:2%;right:2%;bottom:34%;height:13%;display:flex;gap:2%;align-items:flex-end}
+.fence i{flex:1;height:100%;background:#b8bcc2;border-radius:30px 30px 4px 4px;transition:background 1.5s;border:3px solid #fff}
+.fence.on i{background:#ff8c1a}
+.it{position:absolute;line-height:1;transition:filter 1.5s,opacity 1.5s;filter:grayscale(1) brightness(1.05);opacity:.55}
+.it.on{filter:none;opacity:1;animation:bob 3s ease-in-out infinite}
+.it.vio.on{filter:hue-rotate(250deg) saturate(1.5)}
+.wheelStatue{position:absolute;right:4%;bottom:10%;width:14%;transition:filter 1.5s,opacity 1.5s;filter:grayscale(1);opacity:.55}
+.wheelStatue.on{filter:none;opacity:1}
+.wheelStatue.on svg{animation:spin 8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.taskCard{display:flex;align-items:center;gap:14px;background:#fff;border-radius:30px;padding:12px 16px;margin:18px 0;box-shadow:0 8px 0 #e7c9ff;border:5px solid #fff;text-align:left}
+.taskCard .ic{font-size:60px}
+.taskCard .tx{flex:1;font-size:clamp(22px,4vw,30px);font-weight:700}
+.taskCard .cost{font-size:24px;color:#b07a00}
+.prog{height:22px;border-radius:20px;background:#fff;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.1);margin:6px 0 14px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,#ff3b30,#ff8c1a,#ffd60a,#2ecc40,#1e7bff,#9b4dff);transition:width 1s}
+/* ---------- pip the parrot ---------- */
+#pip{position:fixed;left:10px;bottom:10px;z-index:45;display:flex;align-items:flex-end;gap:6px;max-width:min(560px,94vw);pointer-events:none}
+#pip .bird{font-size:72px;animation:bob 2s ease-in-out infinite;pointer-events:auto}
+#pip .bub{background:#fff;border-radius:26px 26px 26px 6px;padding:12px 16px;font-size:clamp(18px,3.4vw,24px);font-weight:600;box-shadow:0 6px 0 #e7c9ff;border:4px solid #fff;pointer-events:auto;display:none}
+#pip .bub.on{display:block;animation:fade .3s}
+/* ---------- menu ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-top:16px}
+.tile{border-radius:40px;padding:20px 10px;color:#fff;border:5px solid #fff;box-shadow:0 10px 0 rgba(0,0,0,.15);display:flex;flex-direction:column;align-items:center;gap:6px}
+.tile .i{font-size:84px;animation:bob 2.6s ease-in-out infinite}
+.tile .n{font-size:28px;font-weight:700;text-shadow:0 3px 0 rgba(0,0,0,.15)}
+.tile .s{font-size:20px;background:rgba(255,255,255,.3);padding:2px 12px;border-radius:20px}
+.tile:active{transform:translateY(8px)}
+.ask{display:inline-flex;align-items:center;gap:12px;background:#fff;border-radius:34px;padding:10px 12px 10px 24px;font-size:clamp(24px,5vw,38px);font-weight:700;box-shadow:0 8px 0 #e7c9ff;margin-bottom:14px}
+/* ---------- paint shop ---------- */
+.order{display:flex;align-items:center;gap:14px;justify-content:center;background:#fff;border-radius:34px;padding:12px 18px;box-shadow:0 8px 0 #e7c9ff;margin-bottom:14px;flex-wrap:wrap}
+.order .cust{font-size:76px;animation:bob 2s ease-in-out infinite}
+.order .want{font-size:clamp(26px,5vw,40px);font-weight:700}
+.sw{display:inline-block;width:46px;height:46px;border-radius:50%;border:4px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.2);vertical-align:middle}
+.recipe{display:flex;align-items:center;gap:6px;font-size:34px;font-weight:700;background:#fff7d6;border-radius:24px;padding:8px 14px}
+.bowlRow{display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;margin:10px 0}
+.bowl{position:relative;width:min(280px,60vw);aspect-ratio:1.5;border-radius:0 0 50% 50%/0 0 100% 100%;background:#fff;border:8px solid #fff;box-shadow:inset 0 -10px 0 rgba(0,0,0,.08),0 10px 0 #e7c9ff;overflow:hidden}
+.paint{position:absolute;left:0;right:0;bottom:0;height:0;transition:height .4s,background .6s;border-radius:0 0 50% 50%/0 0 100% 100%}
+.drops{display:flex;gap:6px;justify-content:center;min-height:40px;margin-top:8px}
+.drops i{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.cans{display:flex;gap:18px;justify-content:center;margin:14px 0}
+.can{width:min(150px,28vw);aspect-ratio:.9;border-radius:20px 20px 30px 30px;border:6px solid #fff;box-shadow:0 10px 0 rgba(0,0,0,.2);position:relative;font-size:22px;font-weight:700;color:#fff;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.can::before{content:'';position:absolute;top:-22px;left:15%;right:15%;height:22px;border:6px solid #fff;border-bottom:none;border-radius:40px 40px 0 0}
+.can:active{transform:translateY(8px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.fly{position:fixed;z-index:80;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;pointer-events:none;transition:left .45s ease-in,top .45s ease-in}
+/* ---------- sorter ---------- */
+.blob{width:min(220px,50vw);aspect-ratio:1;margin:10px auto;border-radius:46% 54% 50% 50%/55% 45% 55% 45%;border:8px solid #fff;box-shadow:0 12px 0 rgba(0,0,0,.15);animation:bob 2s ease-in-out infinite}
+.doors{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+.door{width:min(300px,44vw);border-radius:34px;padding:18px 10px;background:#fff;box-shadow:0 10px 0 #e7c9ff;border:5px solid #fff;font-size:clamp(22px,4vw,30px);font-weight:700;display:flex;flex-direction:column;align-items:center;gap:8px}
+.door .ic{font-size:64px}
+.door:active{transform:translateY(8px)}
+/* ---------- wheel ---------- */
+#wheel{width:min(360px,80vw);display:block;margin:0 auto}
+#wheel path{stroke:#fff;stroke-width:6;cursor:pointer;transition:fill .5s}
+#wheel path.hint{animation:pulse 1s infinite;transform-origin:150px 150px}
+.pal{display:flex;gap:18px;justify-content:center;margin:16px 0;flex-wrap:wrap}
+.pb{width:100px;height:100px;border-radius:50%;border:6px solid #fff;box-shadow:0 8px 0 rgba(0,0,0,.18)}
+.pb.sel{box-shadow:0 0 0 8px #ffd84a,0 8px 0 rgba(0,0,0,.18);transform:scale(1.08)}
+.pb.used{opacity:.25;pointer-events:none}
+/* ---------- quiz ---------- */
+.opts{display:flex;flex-direction:column;gap:14px;align-items:center}
+.opt{width:min(520px,92vw);min-height:96px;border-radius:30px;background:#fff;box-shadow:0 8px 0 #e7c9ff;display:flex;align-items:center;justify-content:center;gap:12px;font-size:38px;font-weight:700;border:5px solid #fff}
+.opt:active{transform:translateY(7px)}
+.opt.ok{background:#d4ffe2;border-color:#2ecc40}
+/* ---------- overlay ---------- */
+.ov{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(60,30,90,.45);padding:16px}
+.ov.on{display:flex;animation:fade .3s}
+.card{background:#fff;border-radius:44px;padding:26px 34px;text-align:center;box-shadow:0 12px 0 #e7c9ff;animation:pop .5s cubic-bezier(.3,1.6,.6,1);max-width:520px}
+@keyframes pop{from{transform:scale(.3)}}
+.card .bigIc{font-size:120px;animation:jump .9s infinite}
+.card h2{font-size:42px;margin:8px 0 18px}
+.fx{position:fixed;pointer-events:none;z-index:90;font-size:36px;animation:flyout .9s ease-out forwards}
+@keyframes flyout{to{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
+#conf{position:fixed;inset:0;pointer-events:none;z-index:85}
+#reset{position:fixed;right:10px;bottom:10px;z-index:46;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.6);font-size:20px}
+</style>
+</head>
+<body>
+<canvas id="conf"></canvas>
+<div id="hud" style="display:none"><button class="round" id="homeBtn" aria-label="Garden">🏡</button><div class="stars" id="stars">⭐ <span id="sn">0</span></div><button class="round" id="muteBtn" aria-label="Sound">🔊</button></div>
+<div id="pip"><button class="bird" id="pipBird" aria-label="Pip the parrot">🦜</button><div class="bub" id="pipBub"></div></div>
+<button id="reset" aria-label="Grown-up: hold 3 seconds to reset">⚙️</button>
+
+<section class="screen on" id="title"><div class="wrap">
+  <div class="title"><span>C</span><span>O</span><span>L</span><span>O</span><span>R</span><br>GARDEN</div>
+  <p style="font-size:30px;font-weight:700;margin:20px 0">🎨 Bring the garden back to color! 🌈</p>
+  <div style="font-size:120px;animation:bob 2s infinite">🦜🖌️</div>
+  <button class="big green huge pulse" id="playBtn" style="margin-top:20px">▶ PLAY</button>
+</div></section>
+
+<section class="screen" id="garden"><div class="wrap">
+  <div class="scene" id="scene">
+    <div class="sky" id="g-sunset"></div>
+    <div class="it" id="g-rainbow" style="left:6%;top:4%;font-size:clamp(70px,16vw,150px)">🌈</div>
+    <div class="it" id="g-sun" style="right:6%;top:5%;font-size:clamp(56px,12vw,110px)">☀️</div>
+    <div class="ground" id="g-grass"></div>
+    <div class="fence" id="g-fence"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="it" id="g-tree" style="left:4%;bottom:30%;font-size:clamp(70px,15vw,140px)">🍁</div>
+    <div class="pond" id="g-pond"></div>
+    <div class="it" id="g-flowers" style="left:8%;bottom:5%;font-size:clamp(34px,7vw,64px)">🌹🌷🌹</div>
+    <div class="it vio" id="g-butterflies" style="left:40%;top:30%;font-size:clamp(40px,8vw,72px)">🦋 🦋</div>
+    <div class="wheelStatue" id="g-wheel"><svg viewBox="0 0 100 100"><g id="statueWheel"></g></svg></div>
+  </div>
+  <div class="prog"><i id="progBar" style="width:0%"></i></div>
+  <div id="taskArea"></div>
+  <button class="big pink huge pulse" id="goPlay">▶ PLAY &amp; EARN ⭐</button>
+</div></section>
+
+<section class="screen" id="menu"><div class="wrap">
+  <div class="ask">Pick a game! <button class="ear" data-say="Pick a game to earn stars!">👂</button></div>
+  <div class="tiles">
+    <button class="tile" style="background:linear-gradient(#ff9f43,#ff6b6b)" data-go="shop"><span class="i">🎨</span><span class="n">Paint Shop</span><span class="s">⭐ each order</span></button>
+    <button class="tile" style="background:linear-gradient(#7dd3fc,#3b82f6)" data-go="sort"><span class="i">🥇</span><span class="n">First or Mixed?</span><span class="s">⭐ for 6 right</span></button>
+    <button class="tile" style="background:linear-gradient(#c084fc,#8b5cf6)" data-go="wheelGame"><span class="i">🎡</span><span class="n">Color Wheel</span><span class="s">⭐⭐</span></button>
+    <button class="tile" style="background:linear-gradient(#86efac,#22c55e)" data-go="quiz"><span class="i">❓</span><span class="n">Quick Check</span><span class="s">⭐⭐</span></button>
+  </div>
+</div></section>
+
+<section class="screen" id="shop"><div class="wrap">
+  <div class="order" id="order"></div>
+  <div class="bowlRow"><div><div class="bowl" id="bowl"><div class="paint" id="paint"></div></div><div class="drops" id="drops"></div></div></div>
+  <div class="cans">
+    <button class="can" data-c="r" style="background:var(--R)">RED</button>
+    <button class="can" data-c="y" style="background:var(--Y);color:#7a5a00;text-shadow:none">YELLOW</button>
+    <button class="can" data-c="b" style="background:var(--B)">BLUE</button>
+  </div>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap"><button class="big blue" id="dump">🗑️ Dump</button><button class="big green" id="mix">🥄 MIX!</button></div>
+</div></section>
+
+<section class="screen" id="sort"><div class="wrap">
+  <div class="ask">Is it a FIRST color or a MIXED color? <button class="ear" id="sortEar">👂</button></div>
+  <div class="blob" id="blob"></div>
+  <div style="font-size:26px;font-weight:700;margin-bottom:12px" id="sortCount"></div>
+  <div class="doors">
+    <button class="door" data-a="p"><span class="ic">🥇</span>FIRST color<br><small>(primary)</small><span><i class="sw" style="background:var(--R)"></i><i class="sw" style="background:var(--Y)"></i><i class="sw" style="background:var(--B)"></i></span></button>
+    <button class="door" data-a="s"><span class="ic">🧪</span>MIXED color<br><small>(secondary)</small><span style="font-size:30px">🎨+🎨</span></button>
+  </div>
+</div></section>
+
+<section class="screen" id="wheelGame"><div class="wrap">
+  <div class="ask" id="wAsk"></div>
+  <svg id="wheel" viewBox="0 0 300 300"></svg>
+  <div class="pal" id="pal"></div>
+</div></section>
+
+<section class="screen" id="quiz"><div class="wrap">
+  <div style="font-size:24px;font-weight:700;margin-bottom:8px" id="qNum"></div>
+  <div class="ask" id="qAsk"></div>
+  <div class="opts" id="qOpts"></div>
+</div></section>
+
+<div class="ov" id="ov"><div class="card"><div class="bigIc" id="ovIc">⭐</div><h2 id="ovTx"></h2><button class="big green" id="ovOk">YAY! ✔</button></div></div>
+
+<script>
+const $=s=>document.querySelector(s);const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const COL={red:'#ff3b30',yellow:'#ffd60a',blue:'#1e7bff',orange:'#ff8c1a',green:'#2ecc40',violet:'#9b4dff'};
+/* ---------- save ---------- */
+const KEY='colorGarden_noah_v1';
+let S;try{S=Object.assign({stars:0,task:0,served:{orange:0,green:0,violet:0},muted:false},JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){S={stars:0,task:0,served:{orange:0,green:0,violet:0},muted:false}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+/* ---------- sound + voice ---------- */
+let AC=null;function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function tone(f,d,type='sine',vol=.2,t0=0,f2){const a=ac();if(!a||S.muted)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function sfx(n){({pop:()=>tone(450,.14,'sine',.35,0,1200),drip:()=>tone(900,.12,'sine',.25,0,300),yay:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.2,'triangle',.22,i*.1)),boing:()=>tone(200,.4,'sine',.3,0,500),star:()=>{tone(1200,.1,'square',.08);tone(1600,.25,'square',.08,.08)},swish:()=>tone(300,.4,'triangle',.2,0,900),magic:()=>[880,1100,1320,1760,2200].forEach((f,i)=>tone(f,.25,'sine',.12,i*.08))}[n]||(()=>{}))()}
+let VOICE=null;function pickVoice(){if(!('speechSynthesis' in window))return;const vs=speechSynthesis.getVoices();for(const p of['Samantha','Google US English','Microsoft Aria','Microsoft Jenny','Karen','Microsoft Zira']){const v=vs.find(v=>v.name.includes(p));if(v){VOICE=v;return}}VOICE=vs.find(v=>/^en/i.test(v.lang))||null}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+let sT=null;function say(t){if(!('speechSynthesis' in window)||!t)return;clearTimeout(sT);speechSynthesis.cancel();sT=setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);if(VOICE)u.voice=VOICE;u.lang=VOICE?VOICE.lang:'en-US';u.rate=.82;u.pitch=1.2;speechSynthesis.speak(u)},60)}
+let pipT=null;function pip(text,speech){const b=$('#pipBub');b.textContent=text;b.classList.remove('on');void b.offsetWidth;b.classList.add('on');say(speech||text);clearTimeout(pipT);pipT=setTimeout(()=>b.classList.remove('on'),9000)}
+$('#pipBird').onclick=()=>{ac();const b=$('#pipBub');if(b.textContent)say(b.textContent)};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-say]');if(b){ac();say(b.dataset.say)}});
+/* ---------- fx ---------- */
+function burst(x,y,ch=['✨','⭐','🎨'],n=14){for(let i=0;i<n;i++){const p=document.createElement('div');p.className='fx';p.textContent=ch[i%ch.length];const a=Math.random()*6.28,r=70+rnd(110);p.style.left=x+'px';p.style.top=y+'px';p.style.setProperty('--dx',Math.cos(a)*r+'px');p.style.setProperty('--dy',Math.sin(a)*r+'px');document.body.appendChild(p);setTimeout(()=>p.remove(),950)}}
+const cv=$('#conf'),cx=cv.getContext('2d');let parts=[],raf=null;
+function confetti(){cv.width=innerWidth;cv.height=innerHeight;for(let i=0;i<140;i++)parts.push({x:rnd(cv.width),y:-rnd(cv.height/2),vx:Math.random()*3-1.5,vy:2+Math.random()*4,r:0,vr:Math.random()*.3,s:8+rnd(8),c:Object.values(COL)[i%6]});if(!raf)raf=requestAnimationFrame(loop)}
+function loop(){cx.clearRect(0,0,cv.width,cv.height);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore()});parts=parts.filter(p=>p.y<cv.height+20);raf=parts.length?requestAnimationFrame(loop):(cx.clearRect(0,0,cv.width,cv.height),null)}
+function hud(){$('#sn').textContent=S.stars;$('#muteBtn').textContent=S.muted?'🔇':'🔊'}
+function addStars(n,x,y){S.stars+=n;save();hud();sfx('star');const st=$('#stars');st.classList.remove('bump');void st.offsetWidth;st.classList.add('bump');burst(x??innerWidth/2,y??innerHeight/2,['⭐','🌟','✨'])}
+let ovCb=null;function showOv(ic,tx,speech,cb){$('#ovIc').textContent=ic;$('#ovTx').textContent=tx;$('#ov').classList.add('on');sfx('yay');confetti();say(speech||tx);ovCb=cb}
+$('#ovOk').onclick=()=>{$('#ov').classList.remove('on');const c=ovCb;ovCb=null;c&&c()};
+const PRAISE=['Yay!','Great job!','Awesome!','You did it!','Super artist!','Wow!'];const praise=()=>PRAISE[rnd(PRAISE.length)];
+/* ---------- screens ---------- */
+let timers=[];const later=(f,ms)=>timers.push(setTimeout(f,ms));
+function show(id){timers.forEach(clearTimeout);timers=[];document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#'+id).classList.add('on');$('#'+id).scrollTop=0;$('#hud').style.display=id==='title'?'none':'flex';
+ ({garden:gardenInit,menu:()=>pip('Pick a game to earn stars!'),shop:shopNew,sort:sortStart,wheelGame:wheelStart,quiz:quizStart}[id]||(()=>{}))()}
+$('#homeBtn').onclick=()=>{sfx('pop');show('garden')};$('#muteBtn').onclick=()=>{S.muted=!S.muted;save();hud()};
+$('#playBtn').onclick=()=>{ac();sfx('yay');show('garden')};
+$('#goPlay').onclick=()=>{ac();sfx('pop');show('menu')};
+document.querySelectorAll('.tile').forEach(t=>t.onclick=()=>{ac();sfx('pop');show(t.dataset.go)});
+
+/* ---------- garden + tasks (restore with stars) ---------- */
+const TASKS=[
+ {id:'sun',ic:'☀️',n:'Paint the sun YELLOW',cost:1,line:'The sun is yellow! Yellow is a primary color. Primary means first!'},
+ {id:'flowers',ic:'🌹',n:'Paint the flowers RED',cost:1,line:'Red flowers! Red is a primary color too. There is color on flowers!'},
+ {id:'pond',ic:'💧',n:'Paint the pond BLUE',cost:1,line:'Blue water! Blue is the third primary color. Red, yellow, and blue!'},
+ {id:'grass',ic:'🌱',n:'Grow GREEN grass',cost:2,line:'Green grass! Green is a secondary color. Two yellow and one blue make green!'},
+ {id:'fence',ic:'🚧',n:'Paint the fence ORANGE',cost:2,line:'An orange fence! Two yellow and one red make orange!'},
+ {id:'butterflies',ic:'🦋',n:'Make VIOLET butterflies',cost:2,line:'Violet butterflies! Two red and one blue make violet!'},
+ {id:'tree',ic:'🍁',n:'Color the fall tree',cost:2,line:'Trees in the fall have lots of colors!'},
+ {id:'sunset',ic:'🌅',n:'Paint a sunset sky',cost:3,line:'There is so much color in a sunset!'},
+ {id:'wheel',ic:'🎡',n:'Build the color wheel statue',cost:3,line:'A color wheel! Artists use it to pick colors.'},
+ {id:'rainbow',ic:'🌈',n:'Make a RAINBOW',cost:3,line:'A rainbow! Your color garden is all done!'}];
+const WHEEL_ORDER=['red','orange','yellow','green','blue','violet'];
+function wedge(i,r,c){const a1=(-90-30+60*i)*Math.PI/180,a2=(-90+30+60*i)*Math.PI/180;return `M${c} ${c} L${c+r*Math.cos(a1)} ${c+r*Math.sin(a1)} A${r} ${r} 0 0 1 ${c+r*Math.cos(a2)} ${c+r*Math.sin(a2)} Z`}
+$('#statueWheel').innerHTML=WHEEL_ORDER.map((n,i)=>`<path d="${wedge(i,46,50)}" fill="${COL[n]}" stroke="#fff" stroke-width="3"/>`).join('');
+$('#statueWheel').parentNode.style.transformOrigin='50% 50%';
+function applyGarden(){TASKS.forEach((t,i)=>{const el=$('#g-'+t.id);if(el)el.classList.toggle('on',i<S.task)});$('#progBar').style.width=(S.task/TASKS.length*100)+'%'}
+function gardenInit(){hud();applyGarden();const t=TASKS[S.task],ta=$('#taskArea');
+ if(!t){ta.innerHTML=`<div class="taskCard"><span class="ic">🏆</span><span class="tx">Your Color Garden is all done!</span></div>`;pip('You did it! Your garden is full of color! Keep playing to practice!');return}
+ const can=S.stars>=t.cost;
+ ta.innerHTML=`<div class="taskCard"><span class="ic">${t.ic}</span><span class="tx">${t.n}<br><span class="cost">Costs ${'⭐'.repeat(t.cost)}</span></span><button class="ear" data-say="${t.n}. It costs ${t.cost} star${t.cost>1?'s':''}.">👂</button>${can?`<button class="big gold pulse" id="doTask">DO IT!</button>`:''}</div>`;
+ if(can){$('#doTask').onclick=doTask;pip(`You have enough stars! Tap DO IT to ${t.n.toLowerCase()}!`)}
+ else pip(S.task===0&&S.stars===0?"Oh no! Somebody took all the color out of my garden! Play games to earn stars, then we can paint it back!":`You need ${t.cost-S.stars} more star${t.cost-S.stars>1?'s':''}. Tap Play to earn stars!`)}
+function doTask(){const t=TASKS[S.task];if(S.stars<t.cost)return;S.stars-=t.cost;S.task++;save();hud();sfx('magic');
+ const el=$('#g-'+t.id);applyGarden();const r=(el||$('#scene')).getBoundingClientRect();burst(r.x+r.width/2,r.y+r.height/2,['✨','🎨','🌟','💖'],20);
+ pip(t.line);
+ if(S.task>=TASKS.length)later(()=>showOv('🌈','Color Garden complete!','Hooray! You brought all the color back! You are a super artist!',gardenInit),2600);
+ else later(gardenInit,2600)}
+
+/* ---------- paint shop: 2 parts + 1 part recipes ---------- */
+const RECIPES={orange:{y:2,r:1,say:'two yellow and one red'},green:{y:2,b:1,say:'two yellow and one blue'},violet:{r:2,b:1,say:'two red and one blue'}};
+const CUST=['🐰','🐻','🐸','🦊','🐼','🐨','🐷','🐵','🦄'];
+let want=null,mix={r:0,y:0,b:0},shopBusy=false;
+const hx=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const lerp=(a,b,t)=>{const A=hx(a),B=hx(b);return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')};
+function mixColor({r,y,b}){const n=r+y+b;if(!n)return null;const k=[r,y,b].filter(Boolean).length;
+ if(k===3)return '#7a5230';if(k===1)return r?COL.red:y?COL.yellow:COL.blue;
+ const path=(A,M,B,t)=>t<=1/3?lerp(A,M,t*3):lerp(M,B,(t-1/3)*1.5);
+ if(!b)return path(COL.yellow,COL.orange,COL.red,r/(r+y));if(!r)return path(COL.yellow,COL.green,COL.blue,b/(y+b));return path(COL.red,COL.violet,COL.blue,b/(r+b))}
+function nameOf(m){const k=[m.r,m.y,m.b].filter(Boolean).length;if(k===3)return 'muddy brown';if(k===1)return m.r?'red':m.y?'yellow':'blue';return !m.b?'orange':!m.r?'green':'violet'}
+function shopNew(){shopBusy=false;mix={r:0,y:0,b:0};want=['orange','green','violet'][rnd(3)];const R=RECIPES[want],c=CUST[rnd(CUST.length)];
+ const showRecipe=(S.served[want]||0)<2;
+ const dots=k=>Object.entries(R).filter(([x])=>x.length===1).map(([x,v])=>Array(v).fill(`<i class="sw" style="background:${x==='r'?COL.red:x==='y'?COL.yellow:COL.blue}"></i>`).join('')).join(' + ');
+ $('#order').innerHTML=`<span class="cust">${c}</span><span class="want">I want <i class="sw" style="background:${COL[want]};width:56px;height:56px"></i> ${want.toUpperCase()}!</span>${showRecipe?`<span class="recipe">${dots()} = <i class="sw" style="background:${COL[want]}"></i></span>`:`<button class="ear" id="hint">💡</button>`}<button class="ear" id="oEar">👂</button>`;
+ const ask=`Please make ${want} paint! ${showRecipe?'The recipe is '+R.say+'.':'Can you remember the recipe? Tap the light bulb for a hint.'}`;
+ $('#oEar').onclick=()=>say(ask);const h=$('#hint');if(h)h.onclick=()=>say(`${want} is ${R.say}.`);
+ drawBowl();pip(`${want.toUpperCase()} please!`,ask)}
+function drawBowl(){const n=mix.r+mix.y+mix.b,c=mixColor(mix);$('#paint').style.height=Math.min(90,n*15)+'%';$('#paint').style.background=c||'transparent';
+ $('#drops').innerHTML=['r','y','b'].flatMap(k=>Array(mix[k]).fill(`<i style="background:${k==='r'?COL.red:k==='y'?COL.yellow:COL.blue}"></i>`)).join('')}
+document.querySelectorAll('.can').forEach(b=>b.onclick=()=>{ac();if(shopBusy)return;if(mix.r+mix.y+mix.b>=6){sfx('boing');pip('The bowl is full! Tap MIX or Dump.');return}
+ const k=b.dataset.c;const r=b.getBoundingClientRect(),bw=$('#bowl').getBoundingClientRect();const d=document.createElement('div');d.className='fly';d.style.background=k==='r'?COL.red:k==='y'?COL.yellow:COL.blue;d.style.left=(r.x+r.width/2-17)+'px';d.style.top=(r.y)+'px';document.body.appendChild(d);
+ requestAnimationFrame(()=>{d.style.left=(bw.x+bw.width/2-17)+'px';d.style.top=(bw.y+bw.height/2)+'px'});setTimeout(()=>d.remove(),480);
+ mix[k]++;sfx('drip');setTimeout(drawBowl,420);say({r:'red',y:'yellow',b:'blue'}[k]+' '+mix[k])});
+$('#dump').onclick=()=>{if(shopBusy)return;mix={r:0,y:0,b:0};sfx('swish');drawBowl();pip('All clean! Try again!')};
+$('#mix').onclick=()=>{if(shopBusy)return;ac();const n=mix.r+mix.y+mix.b;if(!n){sfx('boing');pip('Tap the paint cans to add paint first!');return}
+ const R=RECIPES[want],got=nameOf(mix),bw=$('#bowl');bw.classList.remove('wig');void bw.offsetWidth;bw.classList.add('wig');sfx('swish');
+ const unit=(R.y?mix.y/R.y:0)||(R.r?mix.r/R.r:0);
+ const exact=['r','y','b'].every(k=>mix[k]===(R[k]||0)*unit)&&unit>=1&&Number.isInteger(unit);
+ shopBusy=true;
+ if(exact){S.served[want]=(S.served[want]||0)+1;save();later(()=>{sfx('yay');const r=bw.getBoundingClientRect();addStars(1,r.x+r.width/2,r.y);pip(`${praise()} ${R.say} make ${want}! Here is a star!`)},500);later(shopNew,3800)}
+ else{let msg;if(got==='muddy brown')msg='Oops! Muddy brown! Too many colors. We only need two colors.';
+  else if(got===want)msg=`So close! That is kind of ${want}. The recipe is ${R.say}. Let's try again!`;
+  else msg=`Hee hee! That makes ${got}, not ${want}! The recipe is ${R.say}.`;
+  later(()=>{sfx('boing');pip(msg)},500);later(()=>{mix={r:0,y:0,b:0};drawBowl();shopBusy=false},3800)}};
+
+/* ---------- first (primary) or mixed (secondary) ---------- */
+let sortQ=[],sortN=0,sortBusy=false;const PRIM=['red','yellow','blue'];
+function sortStart(){sortN=0;sortQ=shuffle(['red','yellow','blue','orange','green','violet']);sortNext()}
+function sortNext(){sortBusy=false;const c=sortQ[sortN];$('#blob').style.background=COL[c];$('#sortCount').textContent=`${sortN+1} of 6`;
+ const q=`This is ${c}. Is ${c} a first color, or a mixed color?`;$('#sortEar').onclick=()=>say(q);pip(`This is ${c.toUpperCase()}!`,q)}
+document.querySelectorAll('.door').forEach(d=>d.onclick=()=>{if(sortBusy)return;ac();const c=sortQ[sortN],isP=PRIM.includes(c),ok=(d.dataset.a==='p')===isP;
+ if(ok){sortBusy=true;sfx('pop');d.classList.add('wig');pip(isP?`Yes! ${c} is a primary color. Primary means first!`:`Yes! ${c} is a secondary color. We mix it! ${RECIPES[c].say} make ${c}.`);
+  later(()=>{d.classList.remove('wig');sortN++;if(sortN>=6){showOv('🥇','6 out of 6!','Wow! You sorted all the colors! Here is a star!',()=>{addStars(1);show('menu')})}else sortNext()},3200)}
+ else{sfx('boing');d.classList.remove('wig');void d.offsetWidth;d.classList.add('wig');pip(isP?`Hmm! ${c} is a FIRST color. You can't mix it. It is a primary color!`:`Hmm! ${c} is a MIXED color. ${RECIPES[c].say} make ${c}!`)}});
+
+/* ---------- color wheel ---------- */
+let wFill={},wSel=null,wPhase='build',wOpp=[];
+const OPP={red:'green',blue:'orange',yellow:'violet',green:'red',orange:'blue',violet:'yellow'};
+function wheelStart(){wFill={red:1,yellow:1,blue:1};wSel=null;wPhase='build';drawWheel();
+ $('#wAsk').innerHTML=`Finish the color wheel! <button class="ear" data-say="Finish the color wheel! Each mixed color goes between the two colors that make it. Tap a color, then tap its spot!">👂</button>`;
+ $('#pal').innerHTML=['orange','green','violet'].map(c=>`<button class="pb" data-c="${c}" style="background:${COL[c]}"></button>`).join('');
+ document.querySelectorAll('.pb').forEach(b=>b.onclick=()=>{ac();sfx('pop');wSel=b.dataset.c;document.querySelectorAll('.pb').forEach(x=>x.classList.toggle('sel',x===b));say(wSel)});
+ pip('Red, yellow, and blue are here. Put each mixed color between the two colors that make it!')}
+function drawWheel(){$('#wheel').innerHTML=WHEEL_ORDER.map((n,i)=>`<path data-n="${n}" d="${wedge(i,140,150)}" fill="${wFill[n]?COL[n]:'#e5e7eb'}"/>`).join('')+WHEEL_ORDER.map((n,i)=>wFill[n]?'':`<text x="${150+85*Math.cos((-90+60*i)*Math.PI/180)}" y="${150+85*Math.sin((-90+60*i)*Math.PI/180)+14}" text-anchor="middle" font-size="40" font-family="Fredoka" fill="#9ca3af" pointer-events="none">?</text>`).join('')+'<circle cx="150" cy="150" r="26" fill="#fff"/>';
+ document.querySelectorAll('#wheel path').forEach(p=>p.onclick=()=>wheelTap(p.dataset.n,p))}
+function wheelTap(n,p){ac();
+ if(wPhase==='build'){if(wFill[n]){say(n);return}if(!wSel){sfx('boing');pip('Tap a color at the bottom first!');return}
+  if(wSel===n){wFill[n]=1;sfx('magic');document.querySelector(`.pb[data-c="${n}"]`).classList.add('used');wSel=null;drawWheel();pip(`Yes! ${n} sits between the colors that make it! ${RECIPES[n].say}.`);
+   if(Object.keys(wFill).length===6)later(oppStart,3200)}
+  else{sfx('boing');pip(`Hmm! ${wSel} goes between the colors that make it: ${RECIPES[wSel].say}.`)}}
+ else if(wPhase==='opp'){const q=wOpp[0];if(n===OPP[q]){sfx('pop');p.classList.add('hint');wOpp.shift();pip(`Yes! ${n} is across from ${q}!`);
+   later(()=>{if(!wOpp.length)showOv('🎡','Color wheel done!','You made a color wheel! Here are two stars!',()=>{addStars(2);show('menu')});else oppAsk()},2400)}
+  else{sfx('boing');pip(`That's ${n}. Look straight across from ${q}!`)}}}
+function oppStart(){wPhase='opp';wOpp=shuffle(['red','blue','yellow']);$('#pal').innerHTML='';oppAsk()}
+function oppAsk(){drawWheel();const q=wOpp[0];$('#wAsk').innerHTML=`Tap the color ACROSS from <i class="sw" style="background:${COL[q]}"></i> ${q.toUpperCase()} <button class="ear" data-say="Tap the color across from ${q}!">👂</button>`;pip(`Tap the color across from ${q}!`)}
+
+/* ---------- quick check practice ---------- */
+const swTrio=a=>a.map(c=>`<i class="sw" style="background:${COL[c]}"></i>`).join('');
+const QUIZ=[
+ {q:'Which are the PRIMARY colors?',s:'Which ones are the primary colors? The first colors?',o:[{h:swTrio(['red','yellow','blue']),ok:1,n:'red, yellow, blue'},{h:swTrio(['orange','green','violet']),n:'orange, green, violet'},{h:swTrio(['red','green','violet']),n:'red, green, violet'}],why:'Red, yellow, and blue are the primary colors!'},
+ {q:'🟡🟡 + 🔴 = ?',s:'Two yellow and one red make what color?',o:[{h:swTrio(['orange']),ok:1,n:'orange'},{h:swTrio(['green']),n:'green'},{h:swTrio(['violet']),n:'violet'}],why:'Two yellow and one red make orange!'},
+ {q:'🟡🟡 + 🔵 = ?',s:'Two yellow and one blue make what color?',o:[{h:swTrio(['violet']),n:'violet'},{h:swTrio(['green']),ok:1,n:'green'},{h:swTrio(['orange']),n:'orange'}],why:'Two yellow and one blue make green!'},
+ {q:'🔴🔴 + 🔵 = ?',s:'Two red and one blue make what color?',o:[{h:swTrio(['green']),n:'green'},{h:swTrio(['orange']),n:'orange'},{h:swTrio(['violet']),ok:1,n:'violet'}],why:'Two red and one blue make violet!'},
+ {q:'Which are the SECONDARY colors?',s:'Which ones are the secondary colors? The mixed colors?',o:[{h:swTrio(['red','yellow','blue']),n:'red, yellow, blue'},{h:swTrio(['orange','green','violet']),ok:1,n:'orange, green, violet'}],why:'Orange, green, and violet are the secondary colors!'},
+ {q:'Another word for color is…',s:'Another word for color is... hue? shape? or line?',o:[{h:'🎨 hue',ok:1,n:'hue'},{h:'🔺 shape',n:'shape'},{h:'〰️ line',n:'line'}],why:'Hue means the name of a color!'}];
+let qi=0,qBusy=false;
+function quizStart(){qi=0;quizShow()}
+function quizShow(){qBusy=false;const Q=QUIZ[qi];$('#qNum').textContent=`Question ${qi+1} of ${QUIZ.length}`;
+ $('#qAsk').innerHTML=`${Q.q} <button class="ear" data-say="${Q.s}">👂</button>`;
+ $('#qOpts').innerHTML=shuffle(Q.o.slice()).map(o=>`<button class="opt" data-ok="${o.ok?1:0}" data-n="${o.n}">${o.h}</button>`).join('');
+ document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(qBusy)return;ac();
+  if(b.dataset.ok==='1'){qBusy=true;b.classList.add('ok');sfx('yay');pip(`${praise()} ${Q.why}`);later(()=>{qi++;if(qi>=QUIZ.length)showOv('❓','Quick Check practice done!','You know your colors! Here are two stars!',()=>{addStars(2);show('menu')});else quizShow()},3000)}
+  else{sfx('boing');b.classList.remove('wig');void b.offsetWidth;b.classList.add('wig');pip(`Hmm, that's ${b.dataset.n}. ${Q.why}`)}});
+ pip(Q.q.replace(/[🟡🔴🔵]/gu,''),Q.s)}
+
+/* ---------- grown-up reset ---------- */
+(()=>{const b=$('#reset');let t=null;b.addEventListener('pointerdown',()=>{t=setTimeout(()=>{if(confirm('Reset the Color Garden?')){localStorage.removeItem(KEY);location.reload()}},3000)});['pointerup','pointerleave','pointercancel'].forEach(e=>b.addEventListener(e,()=>clearTimeout(t)))})();
+hud();
+</script>
+</body>
+</html>
