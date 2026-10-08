@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hop's Short O">
+<meta name="theme-color" content="#38c172">
+<title>Hop's Short O Pond</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14415a;--o:#ff7a00}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:'Fredoka',system-ui,sans-serif;color:var(--ink);background:linear-gradient(#9be7ff,#4cc3f0 45%,#2e9fd8);touch-action:manipulation}
+button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
+#hud{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;justify-content:space-between;align-items:center;padding:10px 14px}
+.round{width:72px;height:72px;border-radius:24px;background:#fff;font-size:36px;box-shadow:0 7px 0 #b6e3f5,0 10px 18px rgba(0,0,0,.12)}
+.round:active{transform:translateY(6px);box-shadow:0 1px 0 #b6e3f5}
+.coins{display:flex;align-items:center;gap:8px;background:linear-gradient(#fff7c2,#ffd84a);font-weight:700;font-size:34px;padding:8px 24px 8px 14px;border-radius:40px;box-shadow:0 7px 0 #d69e00;border:4px solid #fff;color:#6b4200}
+.coins.bump{animation:bump .4s}@keyframes bump{50%{transform:scale(1.25)}}
+.screen{position:fixed;inset:0;display:none;overflow-y:auto;padding:96px 14px 60px}
+.screen.on{display:block;animation:fade .35s}@keyframes fade{from{opacity:0;transform:scale(.97)}}
+.wrap{max-width:920px;margin:0 auto;text-align:center}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes wig{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes jump{0%,100%{transform:translateY(0)}40%{transform:translateY(-40px) scale(1.12)}}
+.wig{animation:wig .45s 2}
+.big{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:84px;padding:12px 34px;border-radius:30px;border:5px solid #fff;font-size:32px;font-weight:700;color:#fff;box-shadow:0 9px 0 rgba(0,0,0,.2),0 14px 22px rgba(0,0,0,.15);text-decoration:none}
+.big:active{transform:translateY(7px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.green{background:linear-gradient(#7dffa8,#1fc764);color:#064d22}.pink{background:linear-gradient(#ffb0cb,#ff4f8b)}.purple{background:linear-gradient(#c6a8ff,#8e5cff)}.gold{background:linear-gradient(#ffe46b,#ffb300);color:#5a3500}.blue{background:linear-gradient(#8ee8ff,#2a9df4)}
+.huge{font-size:48px;min-height:110px;padding:16px 60px;border-radius:40px}
+.pulse{animation:pulse 1.2s infinite}
+.ear{width:70px;height:70px;border-radius:50%;background:#ffd84a;font-size:34px;box-shadow:0 6px 0 #d69e00;flex:0 0 auto}
+.ear:active{transform:translateY(5px);box-shadow:0 1px 0 #d69e00}
+.ask{display:inline-flex;align-items:center;gap:12px;background:#fff;border-radius:34px;padding:10px 12px 10px 24px;font-size:clamp(24px,5vw,38px);font-weight:700;box-shadow:0 8px 0 #b6e3f5;margin-bottom:14px}
+.ttl{font-size:clamp(50px,11vw,104px);font-weight:700;line-height:.95;color:#fff;text-shadow:0 6px 0 #1f9a4c,0 12px 0 #0e5f2c,0 18px 26px rgba(0,0,0,.25);animation:bob 3s ease-in-out infinite}
+.ttl b{color:var(--o)}
+.oo{color:var(--o)}
+/* pond map */
+#pond{position:relative;height:min(64vh,560px);border-radius:40px;background:radial-gradient(ellipse at 50% 60%,#5fd0ff,#2a9df4);border:6px solid #fff;overflow:hidden;box-shadow:0 12px 0 #1f7fc2}
+.pad{position:absolute;transform:translate(-50%,-50%);width:clamp(110px,20vw,170px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 40% 35%,#8af0a4,#2fae4b);border:5px solid #fff;box-shadow:0 10px 0 #1b7a35;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:clamp(16px,2.6vw,20px);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.pad .i{font-size:clamp(40px,7vw,58px)}
+.pad.lock{filter:grayscale(1) brightness(.9);opacity:.75}
+.pad.cur{box-shadow:0 10px 0 #1b7a35,0 0 0 8px rgba(255,255,255,.7),0 0 40px 14px #fff59d;animation:pulse 1.4s infinite}
+.pad .flag{position:absolute;top:-30px;right:-6px;font-size:46px;filter:drop-shadow(0 0 10px #ffe600)}
+#frog{position:absolute;font-size:clamp(60px,10vw,90px);transform:translate(-50%,-115%);transition:left 1s cubic-bezier(.5,-.4,.5,1.4),top 1s cubic-bezier(.5,-.4,.5,1.4);z-index:3;pointer-events:none}
+/* level 1 */
+#bz{position:relative;height:min(58vh,520px);border-radius:36px;overflow:hidden;background:rgba(255,255,255,.18);border:5px solid rgba(255,255,255,.7)}
+.wb{position:absolute;bottom:-170px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff 0 12%,rgba(255,255,255,.85) 13%,#c9f3ff 60%,#8fe0ff);box-shadow:inset -8px -10px 18px rgba(0,120,200,.3),0 0 0 5px #fff;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:rise linear forwards}
+.wb .e{font-size:56px;line-height:1}.wb .w{font-size:26px;font-weight:700}
+@keyframes rise{to{transform:translateY(var(--rise))}}
+.wb.pop{animation:popB .35s forwards!important}@keyframes popB{to{transform:translateY(var(--y)) scale(1.6);opacity:0}}
+.tray{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.slot{width:80px;height:80px;border-radius:22px;background:rgba(255,255,255,.35);border:4px dashed #fff;font-size:44px;display:flex;align-items:center;justify-content:center}
+.slot.full{background:#fff;border-style:solid;animation:pulse .5s}
+/* level 2 */
+.pic{font-size:120px;line-height:1;animation:bob 2s infinite}
+.slots{display:flex;gap:12px;justify-content:center;margin:16px 0}
+.ls{width:min(96px,20vw);height:min(110px,24vw);border-radius:22px;background:#fff;border:5px dashed #b6e3f5;font-size:clamp(50px,11vw,72px);font-weight:700;display:flex;align-items:center;justify-content:center}
+.ls.o{border-color:var(--o);background:#fff3e6}
+.ls.f{border-style:solid;animation:pulse .4s}
+.tiles{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.tile{width:min(96px,20vw);height:min(96px,20vw);border-radius:24px;background:linear-gradient(#fff,#e3f6ff);box-shadow:0 8px 0 #7cc6ea;font-size:clamp(46px,10vw,64px);font-weight:700;border:4px solid #fff}
+.tile:active{transform:translateY(6px);box-shadow:0 2px 0 #7cc6ea}
+.tile.used{opacity:.2;pointer-events:none}
+/* level 3 */
+.train{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:100px;padding:14px;background:rgba(255,255,255,.3);border-radius:30px;border:4px dashed #fff;margin-bottom:16px}
+.car{padding:14px 18px;border-radius:20px;background:#fff;font-size:clamp(28px,6vw,44px);font-weight:700;box-shadow:0 6px 0 #b6e3f5;animation:jump .5s}
+.cards{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.card{min-height:90px;padding:10px 22px;border-radius:24px;background:linear-gradient(#fff6c9,#ffd84a);box-shadow:0 8px 0 #d69e00;font-size:clamp(28px,6vw,44px);font-weight:700;border:4px solid #fff}
+.card:active{transform:translateY(6px)}
+/* missions */
+.openBtn{margin:6px 0 18px}
+.step{display:flex;align-items:center;gap:14px;background:#fff;border-radius:30px;padding:14px;margin:14px 0;box-shadow:0 8px 0 #b6e3f5;text-align:left;border:5px solid #fff}
+.step.now{border-color:#ffd84a;box-shadow:0 8px 0 #d69e00,0 0 0 6px rgba(255,216,74,.4)}
+.step.done{background:#e8fff0;border-color:#2ecc71;opacity:.8}
+.step .n{width:56px;height:56px;border-radius:50%;background:#8e5cff;color:#fff;font-size:30px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.step .e{font-size:54px;flex:0 0 auto}
+.step .t{flex:1;font-size:clamp(20px,3.8vw,28px);font-weight:600;line-height:1.25}
+.step .ok{min-height:76px;padding:8px 18px;font-size:24px}
+.wordBig{font-size:clamp(70px,16vw,130px);font-weight:700;letter-spacing:6px;background:#fff;border-radius:34px;padding:6px 30px;display:inline-block;box-shadow:0 10px 0 #b6e3f5;margin:10px 0}
+/* overlay + fx */
+.ov{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(10,60,100,.5);padding:16px}
+.ov.on{display:flex;animation:fade .3s}
+.box{background:#fff;border-radius:44px;padding:26px 34px;text-align:center;box-shadow:0 12px 0 #b6e3f5;animation:popin .5s cubic-bezier(.3,1.6,.6,1);max-width:540px}
+@keyframes popin{from{transform:scale(.3)}}
+.box .bi{font-size:120px;animation:jump .9s infinite}.box h2{font-size:40px;margin:8px 0 18px}
+.fx{position:fixed;pointer-events:none;z-index:90;font-size:36px;animation:fly .9s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
+#conf{position:fixed;inset:0;pointer-events:none;z-index:85}
+#reset{position:fixed;right:10px;bottom:10px;z-index:46;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.5);font-size:20px}
+</style>
+</head>
+<body>
+<canvas id="conf"></canvas>
+<div id="hud" style="display:none"><button class="round" id="mapBtn">🗺️</button><div class="coins" id="coins">🪙 <span id="cn">0</span></div><button class="round" id="muteBtn">🔊</button></div>
+<button id="reset" aria-label="Grown-up: hold 3 seconds to reset">⚙️</button>
+
+<section class="screen on" id="title"><div class="wrap">
+  <div class="ttl">HOP'S<br>SH<b>O</b>RT <b>O</b><br>P<b>O</b>ND</div>
+  <div style="font-size:130px;margin:16px 0;animation:jump 1.2s infinite">🐸</div>
+  <button class="big green huge pulse" id="playBtn">▶ PLAY</button>
+</div></section>
+
+<section class="screen" id="map"><div class="wrap">
+  <div class="ask">Hop to a lily pad! <button class="ear" data-say="Hop to the glowing lily pad!">👂</button></div>
+  <div id="pond"></div>
+</div></section>
+
+<section class="screen" id="l1"><div class="wrap">
+  <div class="ask">Pop words with the <span class="oo">&nbsp;o&nbsp;</span> sound! <button class="ear" data-say="Pop the words that have the short o sound. Ah! Like pot and hot. Say ah!">👂</button></div>
+  <div id="bz"></div><div class="tray" id="tray1"></div>
+</div></section>
+
+<section class="screen" id="l2"><div class="wrap">
+  <div class="ask"><span id="l2q">Build the word!</span> <button class="ear" id="l2ear">👂</button></div>
+  <div class="pic" id="l2pic"></div>
+  <div class="slots" id="l2slots"></div>
+  <div class="tiles" id="l2tiles"></div>
+</div></section>
+
+<section class="screen" id="l3"><div class="wrap">
+  <div class="ask">Put the words in order! <button class="ear" data-say="Put the words in order. Stop, don't grab the pot. It's hot!">👂</button></div>
+  <div class="train" id="train"></div>
+  <div class="cards" id="cards"></div>
+</div></section>
+
+<section class="screen" id="l4"><div class="wrap">
+  <div class="ask">🎨 Canva Poster Mission <button class="ear" data-say="Canva poster mission! Do one step at a time. Tap the speaker to hear a step. Tap I did it when you finish.">👂</button></div>
+  <div><a class="big purple openBtn" id="openPoster" href="https://canva.link/g3e7tgejna8rcp3" target="_blank" rel="noopener">🖌️ OPEN MY POSTER</a></div>
+  <div id="steps4"></div>
+</div></section>
+
+<section class="screen" id="l5"><div class="wrap">
+  <div class="ask">✏️ Draw Tool Mission <button class="ear" data-say="Draw tool mission! Add a new page in Canva. Use the Draw tool to write each word. Color the o orange! Then say a sentence with the word.">👂</button></div>
+  <div><a class="big purple openBtn" href="https://canva.link/g3e7tgejna8rcp3" target="_blank" rel="noopener">🖌️ OPEN MY POSTER</a></div>
+  <div id="l5body"></div>
+</div></section>
+
+<section class="screen" id="win"><div class="wrap">
+  <div class="ttl" style="font-size:clamp(44px,9vw,90px)">YOU DID IT! 🏆</div>
+  <div style="font-size:120px;animation:jump 1s infinite">🐸👑</div>
+  <div class="ask" style="text-align:left">📤 Last step: send it to your teacher! <button class="ear" data-say="Last step! In Canva, click Send to teacher at the top right. Pick your teacher. Then click Send. Ask Mom or Dad for help!">👂</button></div>
+  <div class="step"><span class="e">↗️</span><span class="t">In Canva, click <b>Send to teacher</b> (top right).</span></div>
+  <div class="step"><span class="e">👩‍🏫</span><span class="t">Pick your teacher's name.</span></div>
+  <div class="step"><span class="e">📨</span><span class="t">Click <b>Send</b>. Ask Mom or Dad to help!</span></div>
+  <a class="big purple" href="https://canva.link/g3e7tgejna8rcp3" target="_blank" rel="noopener">🖌️ OPEN MY POSTER</a>
+</div></section>
+
+<div class="ov" id="ov"><div class="box"><div class="bi" id="ovIc">🏆</div><h2 id="ovTx"></h2><button class="big green" id="ovOk">GO! ➜</button></div></div>
+
+<script>
+const $=s=>document.querySelector(s);const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const KEY='shortO_noah_v1';
+let S;try{S=Object.assign({coins:0,done:[0,0,0,0,0],l4:[],l5:[],muted:false},JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){S={coins:0,done:[0,0,0,0,0],l4:[],l5:[],muted:false}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+/* sound + voice */
+let AC=null;function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function tone(f,d,type='sine',vol=.2,t0=0,f2){const a=ac();if(!a||S.muted)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function sfx(n){({pop:()=>tone(450,.14,'sine',.35,0,1200),coin:()=>{tone(988,.08,'square',.1);tone(1319,.25,'square',.1,.08)},yay:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.2,'triangle',.22,i*.1)),boing:()=>tone(200,.4,'sine',.3,0,500),ribbit:()=>{tone(180,.12,'square',.15,0,120);tone(200,.12,'square',.15,.15,130)},hop:()=>tone(300,.2,'sine',.25,0,800),choo:()=>{tone(700,.3,'triangle',.15);tone(560,.3,'triangle',.15,.3)}}[n]||(()=>{}))()}
+let VOICE=null;function pickVoice(){if(!('speechSynthesis' in window))return;const vs=speechSynthesis.getVoices();for(const p of['Samantha','Google US English','Microsoft Aria','Microsoft Jenny','Karen','Microsoft Zira']){const v=vs.find(v=>v.name.includes(p));if(v){VOICE=v;return}}VOICE=vs.find(v=>/^en/i.test(v.lang))||null}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+let sT=null;function say(t){if(!('speechSynthesis' in window)||!t)return;clearTimeout(sT);speechSynthesis.cancel();sT=setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);if(VOICE)u.voice=VOICE;u.lang=VOICE?VOICE.lang:'en-US';u.rate=.8;u.pitch=1.15;speechSynthesis.speak(u)},60)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-say]');if(b){ac();say(b.dataset.say)}});
+/* fx */
+function burst(x,y,ch=['✨','⭐','🪙'],n=12){for(let i=0;i<n;i++){const p=document.createElement('div');p.className='fx';p.textContent=ch[i%ch.length];const a=Math.random()*6.28,r=70+rnd(100);p.style.left=x+'px';p.style.top=y+'px';p.style.setProperty('--dx',Math.cos(a)*r+'px');p.style.setProperty('--dy',Math.sin(a)*r+'px');document.body.appendChild(p);setTimeout(()=>p.remove(),950)}}
+const cv=$('#conf'),cx=cv.getContext('2d');let parts=[],raf=null;
+function confetti(){cv.width=innerWidth;cv.height=innerHeight;for(let i=0;i<140;i++)parts.push({x:rnd(cv.width),y:-rnd(cv.height/2),vx:Math.random()*3-1.5,vy:2+Math.random()*4,r:0,vr:Math.random()*.3,s:8+rnd(8),c:['#ff7a00','#ffd84a','#2ecc71','#2a9df4','#ff4f8b'][i%5]});if(!raf)raf=requestAnimationFrame(loop)}
+function loop(){cx.clearRect(0,0,cv.width,cv.height);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore()});parts=parts.filter(p=>p.y<cv.height+20);raf=parts.length?requestAnimationFrame(loop):(cx.clearRect(0,0,cv.width,cv.height),null)}
+function hud(){$('#cn').textContent=S.coins;$('#muteBtn').textContent=S.muted?'🔇':'🔊'}
+function addCoins(n,x,y){S.coins+=n;save();hud();sfx('coin');const c=$('#coins');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump');burst(x??innerWidth/2,y??innerHeight/2)}
+let ovCb=null;function showOv(ic,tx,sp,cb){$('#ovIc').textContent=ic;$('#ovTx').textContent=tx;$('#ov').classList.add('on');sfx('yay');confetti();say(sp||tx);ovCb=cb}
+$('#ovOk').onclick=()=>{$('#ov').classList.remove('on');const c=ovCb;ovCb=null;c&&c()};
+/* screens */
+let timers=[];const later=(f,ms)=>timers.push(setTimeout(f,ms));
+function show(id){timers.forEach(t=>{clearTimeout(t);clearInterval(t)});timers=[];document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#'+id).classList.add('on');$('#'+id).scrollTop=0;$('#hud').style.display=id==='title'?'none':'flex';
+ ({map:mapInit,l1:l1Init,l2:l2Init,l3:l3Init,l4:l4Init,l5:l5Init,win:()=>{confetti();sfx('yay');say('You did it! Last step: send your poster to your teacher. Ask Mom or Dad to help!')}}[id]||(()=>{}))()}
+$('#mapBtn').onclick=()=>{sfx('pop');show('map')};$('#muteBtn').onclick=()=>{S.muted=!S.muted;save();hud()};
+$('#playBtn').onclick=()=>{ac();sfx('ribbit');say("Ribbit! I'm Hop the frog! Frog has the short o sound. Ah! Let's hop!");show('map')};
+function finish(i,msg){const first=!S.done[i];S.done[i]=1;save();if(first)addCoins(20);showOv('🏆',msg,msg+' Ribbit!',()=>show(i===4?'win':'map'))}
+/* map */
+const LV=[{n:'Pop the O',i:'🫧'},{n:'Build It',i:'🔤'},{n:'Word Train',i:'🚂'},{n:'Canva Poster',i:'🎨'},{n:'Draw Words',i:'✏️'}];
+const POS=[[14,72],[34,38],[52,72],[70,36],[87,70]];
+const open=i=>i===0||S.done[i-1]||S.done[i];
+function mapInit(){hud();const cur=S.done.indexOf(0);const p=$('#pond');
+ p.innerHTML=LV.map((l,i)=>`<button class="pad ${open(i)?'':'lock'} ${i===cur?'cur':''}" data-i="${i}" style="left:${POS[i][0]}%;top:${POS[i][1]}%"><span class="i">${open(i)?l.i:'🔒'}</span>${l.n}${S.done[i]?'<span class="flag">🚩</span>':''}</button>`).join('')+
+ `<div id="frog" style="left:${POS[cur<0?4:cur][0]}%;top:${POS[cur<0?4:cur][1]}%">🐸</div>`;
+ p.querySelectorAll('.pad').forEach(b=>b.onclick=()=>{ac();const i=+b.dataset.i;if(!open(i)){sfx('boing');b.classList.add('wig');setTimeout(()=>b.classList.remove('wig'),900);say('Locked! Finish the pad before it first.');return}
+  sfx('hop');const f=$('#frog');f.style.left=POS[i][0]+'%';f.style.top=POS[i][1]+'%';setTimeout(()=>show('l'+(i+1)),900)});
+ if(cur<0)later(()=>say('You finished every lily pad! Tap the last pad to see how to send your poster.'),300)}
+
+/* L1: pop the short o words */
+const SHORTO=[{w:'frog',e:'🐸'},{w:'stop',e:'🛑'},{w:'clock',e:'⏰'},{w:'block',e:'🧱'},{w:'hot',e:'🔥'},{w:'pot',e:'🍲'},{w:'dog',e:'🐶'},{w:'fox',e:'🦊'},{w:'box',e:'📦'}];
+const NOTO=[{w:'cat',e:'🐱',v:'a'},{w:'bed',e:'🛏️',v:'e'},{w:'pig',e:'🐷',v:'i'},{w:'sun',e:'☀️',v:'u'},{w:'hat',e:'🎩',v:'a'}];
+let found=[];
+function l1Init(){found=[];drawTray();const bz=$('#bz');bz.innerHTML='';
+ const spawn=()=>{if(found.length>=6)return;const on=[...bz.querySelectorAll('.wb')].map(b=>b.dataset.w);if(on.length>=4)return;
+  const pool=[...SHORTO.filter(x=>!found.includes(x.w)&&!on.includes(x.w)),...SHORTO.filter(x=>!found.includes(x.w)&&!on.includes(x.w)),...NOTO.filter(x=>!on.includes(x.w))];if(!pool.length)return;
+  const it=pool[rnd(pool.length)],b=document.createElement('button');b.className='wb';b.dataset.w=it.w;b.innerHTML=`<span class="e">${it.e}</span><span class="w">${it.w.replace('o','<span class="oo">o</span>')}</span>`;
+  b.style.left=Math.max(4,Math.random()*(bz.clientWidth-158))+'px';b.style.setProperty('--rise',-(bz.clientHeight+200)+'px');b.style.animationDuration=(8+Math.random()*4)+'s';
+  b.addEventListener('pointerdown',e=>{e.preventDefault();tapWord(b,it)});b.addEventListener('animationend',ev=>{if(ev.animationName==='rise')b.remove()});bz.appendChild(b)};
+ spawn();const t=setInterval(spawn,1400);timers.push(t);say('Pop the words with the short o sound! Ah! Like pot and hot. Pop six!')}
+function tapWord(b,it){if(b.dataset.p)return;ac();const m=getComputedStyle(b).transform.match(/matrix.*\((.+)\)/);b.style.setProperty('--y',(m?parseFloat(m[1].split(',')[5]):0)+'px');
+ if(it.v){sfx('boing');b.style.filter='grayscale(1) opacity(.6)';say(`${it.w}. ${it.w} has the ${it.v} sound, not o. Try another!`);return}
+ b.dataset.p=1;b.classList.add('pop');sfx('pop');const r=b.getBoundingClientRect();setTimeout(()=>b.remove(),350);
+ if(!found.includes(it.w)){found.push(it.w);drawTray();addCoins(2,r.x+r.width/2,r.y)}
+ say(`${it.w}! ${it.w.split('').join(' ')}. Ah!`);if(found.length>=6)later(()=>finish(0,'You found 6 short o words!'),1600)}
+function drawTray(){$('#tray1').innerHTML=Array.from({length:6},(_,i)=>{const w=found[i];const it=w&&SHORTO.find(x=>x.w===w);return `<div class="slot ${w?'full':''}">${w?it.e:''}</div>`}).join('')}
+
+/* L2: build the word, o highlighted */
+const L2W=['frog','stop','clock','block','hot','pot'];let l2i=0,l2pos=0;
+function l2Init(){l2i=0;l2Word()}
+function l2Word(){const w=L2W[l2i],it=SHORTO.find(x=>x.w===w);l2pos=0;$('#l2q').textContent=`Build: ${w.toUpperCase()} (${l2i+1} of 6)`;$('#l2pic').textContent=it.e;
+ $('#l2slots').innerHTML=w.split('').map(c=>`<div class="ls ${c==='o'?'o':''}"></div>`).join('');
+ const letters=shuffle([...w.split(''),...shuffle('abdeimnstu'.split('').filter(c=>!w.includes(c))).slice(0,2)]);
+ $('#l2tiles').innerHTML=letters.map(c=>`<button class="tile" data-c="${c}">${c}</button>`).join('');
+ $('#l2ear').onclick=()=>say(`${w}. ${w.split('').join(', ')}. ${w}!`);
+ document.querySelectorAll('#l2tiles .tile').forEach(t=>t.onclick=()=>{ac();const need=w[l2pos];
+  if(t.dataset.c===need){const s=document.querySelectorAll('#l2slots .ls')[l2pos];s.textContent=need;s.classList.add('f');if(need==='o')s.style.color='var(--o)';t.classList.add('used');sfx('pop');say(need==='o'?'o says ah!':need);l2pos++;
+   if(l2pos===w.length){const r=$('#l2slots').getBoundingClientRect();addCoins(3,r.x+r.width/2,r.y);later(()=>say(`${w}! You built ${w}!`),500);l2i++;later(()=>l2i>=L2W.length?finish(1,'You built all 6 words!'):l2Word(),2400)}}
+  else{sfx('boing');t.classList.remove('wig');void t.offsetWidth;t.classList.add('wig');say(`Listen: ${w}. What comes next?`)}});
+ say(`Build the word ${w}. ${w.split('').join(', ')}.`)}
+
+/* L3: sentence train */
+const SENT=['Stop,',"don't",'grab','the','pot.',"It's",'hot.'];let l3pos=0;
+function l3Init(){l3pos=0;$('#train').innerHTML='🚂';$('#cards').innerHTML=shuffle(SENT.map((w,i)=>({w,i}))).map(o=>`<button class="card" data-i="${o.i}">${o.w.replace(/o/,'<span class="oo">o</span>')}</button>`).join('');
+ document.querySelectorAll('#cards .card').forEach(c=>c.onclick=()=>{ac();const i=+c.dataset.i;
+  if(i===l3pos){sfx('choo');$('#train').insertAdjacentHTML('beforeend',`<span class="car">${c.innerHTML}</span>`);c.remove();say(SENT[i].replace(/[,.]/g,''));l3pos++;
+   if(l3pos===SENT.length){later(()=>say("Stop, don't grab the pot. It's hot! Look: a big letter at the start, and a period at the end!"),600);later(()=>finish(2,'All aboard! You built the sentence!'),4200)}}
+  else{sfx('boing');c.classList.remove('wig');void c.offsetWidth;c.classList.add('wig');say(`Next word is: ${SENT[l3pos].replace(/[,.]/g,'')}`)}});
+ say("Put the words in order! Stop, don't grab the pot. It's hot!")}
+
+/* L4: Canva poster mission (step by step, spoken) */
+const STEPS4=[
+ {e:'🖌️',t:'Tap <b>OPEN MY POSTER</b> above.',s:'Tap the purple button, open my poster. Canva will open.'},
+ {e:'🔤',t:'Click <b>Text</b> on the left. Add a text box.',s:'Click Text on the left side. Then add a text box.'},
+ {e:'🅰️',t:'Pick a <b>font</b> you like. Make it <b>BIG</b> with the plus button.',s:'Pick a font you like. Make the letters big. Click the plus button.'},
+ {e:'🟥',t:'Pick bright <b>safety colors</b>: red and yellow!',s:'This is a safety poster. Pick bright colors, like red and yellow, so the words stand out!'},
+ {e:'⌨️',t:'Type: <b>Stop, don\'t grab the pot. It\'s hot.</b> Copy the word cards!',s:"Type the sentence. Copy the word cards at the bottom. Stop, don't grab the pot. It's hot."},
+ {e:'👆',t:'Check: <b>big letter</b> at the start, <b>finger spaces</b>, <b>period</b> at the end.',s:'Check your sentence. A big letter at the start. A space between each word. A period at the end.'},
+ {e:'🖼️',t:'Click <b>Elements</b>. Search <b>pot</b>, <b>stove</b>, or <b>stop sign</b>. Add pictures!',s:'Click Elements. Search for pot, or stove, or stop sign. Add pictures to your poster!'},
+ {e:'↔️',t:'Drag the corners to make pictures <b>bigger</b> or <b>smaller</b>.',s:'Drag the corners of a picture to make it bigger or smaller. Move it where you want it.'},
+ {e:'🧽',t:'Delete the gray note and the word strip at the bottom.',s:'Delete the gray note and the word strip at the bottom. Ask Mom or Dad for help.'}];
+function l4Init(){stepList('steps4',STEPS4,'l4',()=>finish(3,'Your safety poster is done!'))}
+function stepList(id,steps,key,onAll){const cur=steps.findIndex((_,i)=>!S[key].includes(i));
+ $('#'+id).innerHTML=steps.map((st,i)=>`<div class="step ${S[key].includes(i)?'done':i===cur?'now':''}"><span class="n">${i+1}</span><span class="e">${st.e}</span><span class="t">${st.t}</span><button class="ear" data-say="${st.s.replace(/"/g,'&quot;')}">👂</button>${S[key].includes(i)?'<span style="font-size:40px">✅</span>':`<button class="big green ok" data-i="${i}">I did it ✅</button>`}</div>`).join('');
+ document.querySelectorAll('#'+id+' .ok').forEach(b=>b.onclick=()=>{ac();const i=+b.dataset.i;S[key].push(i);save();const r=b.getBoundingClientRect();addCoins(2,r.x,r.y);
+  const nx=steps.findIndex((_,k)=>!S[key].includes(k));stepList(id,steps,key,onAll);if(nx<0){onAll();return}say('Great! Next: '+steps[nx].s);
+  const el=document.querySelector('#'+id+' .step.now');if(el)el.scrollIntoView({behavior:'smooth',block:'center'})});
+ if(cur>=0)say(steps[cur].s)}
+
+/* L5: draw tool mission */
+const DW=['block','clock','frog','hot','pot','stop'];
+function l5Init(){const intro=[{e:'➕',t:'In Canva, add a <b>new page</b> (the + under your poster).',s:'In Canva, add a new page. Click the plus under your poster.'},{e:'✏️',t:'Click <b>Draw</b> on the left. Pick a pen.',s:'Click Draw on the left side. Pick a pen.'}];
+ const words=DW.map(w=>({e:SHORTO.find(x=>x.w===w).e,t:`<span style="font-size:1.6em;letter-spacing:3px">${w.replace('o','<span class="oo">o</span>')}</span><br>Write it. Color the <b class="oo">o</b> orange! Say a sentence with <b>${w}</b>.`,s:`Write the word ${w}. ${w.split('').join(', ')}. Color the o orange! Then say your own sentence with ${w}, and write it.`}));
+ $('#l5body').innerHTML='<div id="steps5"></div>';stepList('steps5',[...intro,...words],'l5',()=>finish(4,'You wrote all the short o words!'))}
+
+(()=>{const b=$('#reset');let t=null;b.addEventListener('pointerdown',()=>{t=setTimeout(()=>{if(confirm('Reset this game?')){localStorage.removeItem(KEY);location.reload()}},3000)});['pointerup','pointerleave','pointercancel'].forEach(e=>b.addEventListener(e,()=>clearTimeout(t)))})();
+hud();
+</script>
+</body>
+</html>
