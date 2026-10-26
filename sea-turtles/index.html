@@ -720,11 +720,12 @@ function L5(){const q="What is the MOST important thing about sea turtles?";cons
 
 /* ---------- LEVEL 6: TURTLE CHECK BOSS (one check at a time) ---------- */
 const CHECKS=[
- {id:'cap',e:'🔠',n:'Big letters',say:'Check 1. Big letters! Every sentence starts with a big letter.',types:['cap']},
+ {id:'cap',e:'🔠',n:'Big letters',say:'Check 1. Big letters! Every sentence starts with a big letter. And no big letters in the middle!',types:['cap','small']},
  {id:'period',e:'⏺️',n:'Periods',say:'Check 2. Periods! Every sentence ends with a dot.',types:['period']},
  {id:'space',e:'␣',n:'Spaces',say:'Check 3. Spaces! One space between each word.',types:['space']},
  {id:'name',e:'🧒',n:'Your name',say:'Check 4. Your name! Noah Gragg has a big N and a big G.',types:['name']},
- {id:'match',e:'🤝',n:'Words that match',say:'Check 5. Do your words match? We say: sea turtles swim. Or: a sea turtle swims. Tap Read my story and listen. Does it sound right?',types:[]}];
+ {id:'repeat',e:'🔁',n:'No repeats',say:'Check 5. No repeats! Every sentence should tell something NEW. If two sentences say the same thing, change one or take it out.',types:['repeat']},
+ {id:'match',e:'🤝',n:'Words that match',say:'Check 6. Do your words match? We say: sea turtles swim. Or: a sea turtle swims. Tap Read my story and listen. Does it sound right?',types:[]}];
 let curCheck=null;
 function L6(){(!S.storyReady)?l6Title():l6Boss()}
 function l6Title(){const say='Before the boss battle, give your story a title! Then type your name.';
@@ -747,6 +748,7 @@ function findIssues(t,kind){const out=[];if(!t)return out;let m;
  const starts=[];const first=t.search(/\S/);if(first>=0)starts.push(first);
  if(kind!=='title'){const rs=/[.!?]+\s+(?=\S)/g;while((m=rs.exec(t)))starts.push(m.index+m[0].length)}
  starts.forEach(i=>{if(/[a-z]/.test(t[i]))out.push({s:i,e:i+1,type:'cap'})});
+ if(kind!=='title'){const st=new Set(starts),rc=/\b(Sea|Turtles?|Shells?|Ocean|Flippers?|Baby|Babies|Sand|Water|Some|They|There|Animals?)\b/g;while((m=rc.exec(t)))if(!st.has(m.index))out.push({s:m.index,e:m.index+1,type:'small'})}
  const rn=/\bnoah\s+gragg\b/gi;while((m=rn.exec(t))){const w=m[0].split(/\s+/);if(w.some(x=>/^[a-z]/.test(x)))out.push({s:m.index,e:m.index+m[0].length,type:'name'})}
  if(kind!=='title'){const tr=t.replace(/\s+$/,'');if(tr&&!/[.!?]["')]?$/.test(tr))out.push({s:tr.length,e:tr.length,type:'period'})}
  return out}
@@ -754,13 +756,23 @@ function marked(t,iss){const sorted=[...iss].sort((a,b)=>a.s-b.s||a.e-b.e);let h
  for(const i of sorted){if(i.s<pos)continue;h+=esc(t.slice(pos,i.s));
   if(i.e===i.s)h+=`<mark class="ghost flash" data-t="${i.type}">•</mark>`;else h+=`<mark class="flash" data-t="${i.type}">${esc(t.slice(i.s,i.e)).replace(/ /g,'&nbsp;')}</mark>`;pos=Math.max(pos,i.e)}
  return h+esc(t.slice(pos))}
-const issuesFor=c=>pieces().flatMap(p=>findIssues(getP(p.k),p.kind)).filter(i=>c.types.includes(i.type));
+function repeatMap(){const seen=[],out={};const words=t=>t.toLowerCase().replace(/[^a-z\s']/g,' ').split(/\s+/).filter(Boolean);
+ pieces().filter(p=>p.kind==='sent').forEach(p=>{const v=getP(p.k);const re=/[^.!?]+[.!?]*/g;let m;
+  while((m=re.exec(v))){const w=words(m[0]);if(w.length<3)continue;const set=new Set(w);
+   const dup=seen.some(o=>{const inter=[...set].filter(x=>o.has(x)).length,uni=new Set([...set,...o]).size;const small=Math.min(set.size,o.size);return inter/uni>=.6||(small>=4&&inter===small)});
+   if(dup){const lead=m[0].match(/^\s*/)[0].length;(out[p.k]=out[p.k]||[]).push({s:m.index+lead,e:m.index+m[0].length,type:'repeat'})}
+   seen.push(set)}
+  const all=new Set(words(v));if(all.size>=3)seen.push(all)});return out}
+function startCounts(){const c={};[S.starter,...S.facts,S.ending].forEach(t=>(t||'').split(/(?<=[.!?])\s+/).forEach(x=>{const w=x.toLowerCase().replace(/[^a-z\s]/g,'').trim().split(/\s+/).slice(0,2).join(' ');if(w)c[w]=(c[w]||0)+1}));return c}
+const variedOK=()=>Math.max(0,...Object.values(startCounts()))<=2;
+const allIss=p=>findIssues(getP(p.k),p.kind).concat(repeatMap()[p.k]||[]);
+const issuesFor=c=>pieces().flatMap(p=>allIss(p)).filter(i=>c.types.includes(i.type));
 function l6Boss(){const i=CHECKS.findIndex(c=>!S.hits.includes(c.id));
  if(i<0){$('#lv5').innerHTML=`<div class="wrap center"><div class="bossArea"><div>${crabSVG('bossCrab')}</div></div></div>`;bossDefeated();return}
  const c=CHECKS[i];curCheck=c;
  $('#lv5').innerHTML=`<div class="wrap">${head(5,'Boss battle! Beat the Oops Crab. One check at a time!')}
-  <div class="bossArea"><div id="bossWrap">${crabSVG('bossCrab')}</div><div><div class="bossBubble" id="bossSay">Hee hee! I hid oopsies in your story! 🦀</div><div class="hp" style="margin-top:12px">${[0,1,2,3,4].map(k=>`<span class="${k<S.hits.length?'gone':''}">❤️</span>`).join('')}</div></div></div>
-  <div class="q">${c.e} Check ${i+1} of 5: ${c.n} ${spk(c.say)}</div>
+  <div class="bossArea"><div id="bossWrap">${crabSVG('bossCrab')}</div><div><div class="bossBubble" id="bossSay">Hee hee! I hid oopsies in your story! 🦀</div><div class="hp" style="margin-top:12px">${CHECKS.map((_,k)=>`<span class="${k<S.hits.length?'gone':''}">❤️</span>`).join('')}</div></div></div>
+  <div class="q">${c.e} Check ${i+1} of ${CHECKS.length}: ${c.n} ${spk(c.say)}</div>
   <div class="say" id="todo"></div>
   ${c.id==='match'?`<div class="hints"><div class="hint">✅ sea turtles swim ${spk('sea turtles swim')}</div><div class="hint">✅ a sea turtle swims ${spk('a sea turtle swims')}</div><button class="btn blue small" id="readAll">🔊 Read my story</button></div>`:''}
   <div class="story" id="story"></div>
@@ -771,7 +783,7 @@ function l6Boss(){const i=CHECKS.findIndex(c=>!S.hits.includes(c.id));
  $('#hitBtn').onclick=hitCrab;
  const ra=$('#readAll');if(ra)ra.onclick=()=>speak([S.starter,...S.facts,S.ending].join(' '))}
 function renderStory(announce){const c=curCheck,st=$('#story');if(!st)return;
- st.innerHTML=pieces().map(p=>{const v=getP(p.k);const iss=findIssues(v,p.kind).filter(x=>c.types.includes(x.type));
+ st.innerHTML=pieces().map(p=>{const v=getP(p.k);const iss=allIss(p).filter(x=>c.types.includes(x.type));
   return `<div class="scard ${p.kind==='title'?'title':''} ${iss.length?'hasSpot':''}" data-k="${p.k}"><span class="lab">${p.lab}</span><div class="tx ${v?'':'emptyTx'}">${v?(p.kind==='name'?'by ':'')+marked(v,iss):'(empty - tap to type)'}</div>${spk(v||'This one is empty. Tap to type.')}</div>`}).join('');
  st.querySelectorAll('.scard').forEach(el=>el.addEventListener('click',e=>{if(e.target.closest('.spk')||el.classList.contains('editing'))return;editCard(el)}));
  const n=issuesFor(c).length,todo=$('#todo'),hw=$('#hitWrap');
@@ -781,18 +793,18 @@ function renderStory(announce){const c=curCheck,st=$('#story');if(!st)return;
  if(n){const first=st.querySelector('.hasSpot');if(first&&announce)setTimeout(()=>first.scrollIntoView({behavior:'smooth',block:'center'}),400)}}
 function editCard(el){const k=el.dataset.k;sfx('click');el.classList.add('editing');const v=getP(k);const kind=pieces().find(p=>p.k===k).kind;
  const tx=el.querySelector('.tx');tx.innerHTML=`<textarea class="bigText" spellcheck="true">${esc(v)}</textarea><div class="row" style="margin-top:8px"><button class="btn green small okE">Done ✓</button></div>`;
- const ta=tx.querySelector('textarea');ta.focus();const hit=findIssues(v,kind).find(x=>curCheck.types.includes(x.type));
+ const ta=tx.querySelector('textarea');ta.focus();const hit=allIss(pieces().find(p=>p.k===k)).find(x=>curCheck.types.includes(x.type));
  if(hit){if(hit.type==='period')ta.setSelectionRange(v.replace(/\s+$/,'').length,v.replace(/\s+$/,'').length);else ta.setSelectionRange(hit.s,hit.e)}
- speak(hit?{cap:'Make this letter big!',period:'Type a dot at the end!',space:'Take out the extra space!',name:'Make the N and the G big!'}[hit.type]:'Fix it, then tap Done.');
+ speak(hit?{small:'This letter should be small! Only the first word gets a big letter.',repeat:'This sentence says the same thing as another one. Change it to a NEW fact, or delete it!',cap:'Make this letter big!',period:'Type a dot at the end!',space:'Take out the extra space!',name:'Make the N and the G big!'}[hit.type]:'Fix it, then tap Done.');
  tx.querySelector('.okE').onclick=ev=>{ev.stopPropagation();setP(k,ta.value);sfx('pop');renderStory(false);
   const left=issuesFor(curCheck).length;speak(left?`Nice! ${left} more yellow spot${left>1?'s':''}!`:'All fixed! Now hit the crab!')}}
 function hitCrab(){const c=curCheck;if(issuesFor(c).length){renderStory(true);return}
  S.hits.push(c.id);save();sfx('hit');const crab=$('#bossCrab');crab.classList.remove('hurt');void crab.offsetWidth;crab.classList.add('hurt');
  const r=crab.getBoundingClientRect();burst(r.x+r.width/2,r.y+r.height/2,['💥','⭐','✨'],14);addCoins(10,r.x+r.width/2,r.y);
  document.querySelectorAll('.hp span').forEach((s,k)=>s.classList.toggle('gone',k<S.hits.length));$('#hitBtn').disabled=true;
- $('#bossSay').textContent=['Ouch! 😵','Yikes! 😖','Oof! 🤕','Nooo! 😫','I give up! 🏳️'][S.hits.length-1];
- if(S.hits.length>=5){setTimeout(bossDefeated,700);return}
- speak(`Pow! ${5-S.hits.length} more to go!`);setTimeout(()=>{$('#lv5').scrollTo({top:0});l6Boss()},1800)}
+ $('#bossSay').textContent=['Ouch! 😵','Yikes! 😖','Oof! 🤕','Nooo! 😫','Eek! 😱','I give up! 🏳️'][Math.min(5,S.hits.length-1)];
+ if(S.hits.every(h=>h)&&CHECKS.every(c=>S.hits.includes(c.id))){setTimeout(bossDefeated,700);return}
+ speak(`Pow! ${CHECKS.length-S.hits.length} more to go!`);setTimeout(()=>{$('#lv5').scrollTo({top:0});l6Boss()},1800)}
 function bossDefeated(){const crab=$('#bossCrab');if(crab)crab.classList.add('defeated');const bs=$('#bossSay');if(bs)bs.textContent='You beat me! Your story is awesome! 🦀💛';sfx('fanfare');
  speak('You beat the Oops Crab! Your story is all checked!');setTimeout(()=>completeLevel(5),1800)}
 
@@ -820,8 +832,8 @@ function Victory(){const el=$('#victory');const body=[S.starter,...S.facts,S.end
  el.innerHTML=`<div class="wrap center"><div class="bigTitle" style="font-size:clamp(44px,9vw,90px)">VICTORY ISLAND! 🏆</div>
   <div style="width:min(300px,70vw);margin:10px auto" class="glowRing">${rider(gearOn(),'bobbing')}</div>
   <div class="finalStory" style="text-align:left"><h2>${esc(S.title||'My Sea Turtle Story')}</h2><div class="by">by ${esc(S.name||'')}</div><p>${esc(body)}</p></div>
-  <div class="sectionTitle" style="justify-content:center">✅ Teacher Checklist ${spk('Teacher checklist! Opening sentence. Three facts. A closing sentence. Capitals and periods. Spelling. And a picture with details about your facts.')}</div>
-  <div class="mission" style="text-align:left">${teacherChecks().map(c=>`<div class="mItem ${c.ok?'done':''}"><span class="pic">${c.e}</span><span class="t">${c.t}</span>${spk(c.say)}${c.ok?'<span class="tick" style="background:#2ecc71;border-color:#fff">✅</span>':c.man?`<button class="btn small green" data-man="${c.man}">Done ✅</button>`:`<button class="btn small blue" data-fix="${c.lv}">Fix it ➜</button>`}</div>`).join('')}</div>
+  <div class="sectionTitle" style="justify-content:center">✅ Teacher Checklist ${spk('Teacher checklist! These are the five parts of your rubric. Beginning sentence. Sentences with facts. Ending sentence. Publishing. And conventions. Get every one green!')}</div>
+  <div class="mission" style="text-align:left">${teacherChecks().map((c,i,arr)=>`${i===0||arr[i-1].g!==c.g?`<div style="font-size:22px;font-weight:700;margin:10px 0 0;text-shadow:0 2px 0 rgba(0,0,0,.2)">${c.g}</div>`:''}<div class="mItem ${c.ok?'done':''}"><span class="pic">${c.e}</span><span class="t">${c.t}</span>${spk(c.say)}${c.ok?'<span class="tick" style="background:#2ecc71;border-color:#fff">✅</span>':c.man?`<button class="btn small green" data-man="${c.man}">Done ✅</button>`:`<button class="btn small blue" data-fix="${c.lv}">Fix it ➜</button>`}</div>`).join('')}</div>
   <div class="sectionTitle" style="justify-content:center">✏️ Handwriting Mission ${spk('Handwriting mission! Your teacher wants to see your handwriting. Print your writing paper. Then tap Copy with me, and write each sentence with your pencil!')}</div>
   <div class="row c" style="margin-bottom:10px"><button class="btn purple huge" id="hwPrint">🖨️ Print my paper</button><button class="btn pink huge" id="hwGo">✏️ Copy with me!</button></div>
   <div class="sectionTitle" style="justify-content:center;font-size:28px">🎨 Bonus: make a poster</div>
@@ -854,13 +866,19 @@ async function copyStory(){const txt=storyText();let ok=false;
  setTimeout(()=>{if($('#copyBtn'))$('#copyBtn').textContent='📋 COPY MY STORY'},3000)}
 
 
-function teacherChecks(){const facts=S.facts.filter(f=>wc(f)>=3).length;return [
- {e:'🚀',t:'Beginning sentence names the topic',ok:/\bsea\s*turtles?\b/i.test(S.starter)&&wc(S.starter)>5,lv:2,say:'Does your beginning sentence name the topic, sea turtles?'},
- {e:'🧱',t:`At least 3 facts (you have ${facts})`,ok:facts>=3,lv:3,say:'Do you tell at least three facts about sea turtles?'},
- {e:'💦',t:'Closing sentence says sea turtles a NEW way',ok:endingOK(S.ending)&&wc(S.ending)>=4,lv:4,say:'Does your closing sentence name sea turtles in different words? Like: these amazing ocean animals.'},
- {e:'🔠',t:'Capitals, periods and spaces',ok:!pieces().some(p=>findIssues(getP(p.k),p.kind).length),lv:5,say:'Does every sentence start with a big letter and end with a period?'},
- {e:'🔤',t:'Spelling checked with Mom or Dad',ok:!!S.spellOK,man:'spellOK',say:'Read your story with Mom or Dad. Fix any words with a red squiggle. Then tap done.'},
- {e:'🖼️',t:'Picture with details that show my facts',ok:!!S.picOK,man:'picOK',say:'Draw a picture of sea turtles. Add details that show your facts, like flippers, the hard shell, the ocean, or babies on the sand. Then tap done.'}]}
+function teacherChecks(){const facts=S.facts.filter(f=>wc(f)>=3),vocab=new Set(facts.flatMap(f=>bankHits(f)));
+ const conv=!pieces().some(p=>findIssues(getP(p.k),p.kind).length);
+ return [
+ {g:'1. Beginning sentence',e:'🚀',t:'Names the topic AND tells something about it',ok:/\bsea\s*turtles?\b/i.test(S.starter)&&wc(S.starter)>5&&!/[.!?]\s+\S/.test(S.starter.trim().replace(/[.!?]$/,'')),lv:2,say:'Your beginning sentence says sea turtles, and tells one thing about them, all in one sentence.'},
+ {g:'2. Sentences with facts',e:'🧱',t:`3 or 4 facts about sea turtles (you have ${facts.length})`,ok:facts.length>=3,lv:3,say:'Do you tell three or four facts about sea turtles?'},
+ {g:'2. Sentences with facts',e:'🔁',t:'Every sentence tells something NEW (no repeats)',ok:!Object.keys(repeatMap()).length,lv:5,say:'Does every sentence tell something new? No repeats!'},
+ {g:'2. Sentences with facts',e:'⭐',t:`Uses sea turtle words like flippers, shell, glide (you used ${vocab.size})`,ok:vocab.size>=2,lv:3,say:'Use sea turtle words in your facts, like flippers, shell, ocean, glide, hatch, loggerhead.'},
+ {g:'3. Ending sentence',e:'💦',t:'Tells the most important thing, in NEW words',ok:endingOK(S.ending)&&wc(S.ending)>=4&&!/box turtle/i.test(S.ending),lv:4,say:'Your ending tells the most important thing about these ocean animals, using different words.'},
+ {g:'4. Publishing',e:'✍️',t:'Copied in my neatest handwriting',ok:!!S.handOK,man:'handOK',say:'Write your story in your neatest handwriting. Then tap done.'},
+ {g:'4. Publishing',e:'🖼️',t:'Picture with labels that shows my facts',ok:!!S.picOK,man:'picOK',say:'Draw or print a picture of a sea turtle. Label it, and add details that show your facts. Then tap done.'},
+ {g:'5. Conventions',e:'🔠',t:'Capitals, periods and spaces',ok:conv,lv:5,say:'Does every sentence start with a big letter and end with a period? One space between words?'},
+ {g:'5. Conventions',e:'🔀',t:'Sentences start in different ways',ok:variedOK(),lv:5,say:'Do your sentences start in different ways? Try They, Baby sea turtles, or Some.'},
+ {g:'5. Conventions',e:'🔤',t:'Spelling checked with Mom or Dad',ok:!!S.spellOK,man:'spellOK',say:'Read your story with Mom or Dad. Fix any words with a red squiggle. Then tap done.'}]}
 /* ---------- HANDWRITING MISSION (required by teacher: portfolio must be handwritten) ---------- */
 function hwParts(){return [['Title',S.title],['Beginning',S.starter],...S.facts.map((f,i)=>['Fact '+(i+1),f]),['Ending',S.ending]].filter(p=>(p[1]||'').trim())}
 function printPaper(){const row='<div class="hw"><i class="t"></i><i class="m"></i><i class="b"></i></div>';
@@ -872,7 +890,7 @@ function printPaper(){const row='<div class="hw"><i class="t"></i><i class="m"><
  window.print()}
 function copyAlong(i){const parts=hwParts(),R=$('#reward');
  if(i>=parts.length){R.innerHTML=`<div class="rewardBox"><h2>✏️ ALL WRITTEN! ✏️</h2><div class="gearNew" style="font-size:80px">🏆</div><div class="gearNew">Show your paper to Mom or Dad!</div><button class="btn green huge" id="cwDone">YAY! ✔</button></div>`;
-  R.classList.add('on');sfx('fanfare');confettiBurst(2500);addCoins(30);speak('You wrote your whole story by hand! Amazing! Show your paper to Mom or Dad!');$('#cwDone').onclick=()=>R.classList.remove('on');return}
+  R.classList.add('on');sfx('fanfare');confettiBurst(2500);addCoins(30);speak('You wrote your whole story by hand! Amazing! Show your paper to Mom or Dad!');$('#cwDone').onclick=()=>{R.classList.remove('on');S.handOK=true;save();if(current==='victory')showScreen('victory')};return}
  const [l,t]=parts[i];
  R.innerHTML=`<div class="rewardBox" style="max-width:820px"><div class="gearNew">✏️ ${i+1} of ${parts.length}: ${l}</div>
   <div style="background:#fff;border-radius:24px;padding:20px;font-size:clamp(28px,5vw,44px);line-height:1.4;color:#0d2b45;margin:10px 0;border:4px solid #ffd84a">${esc(t.trim())}</div>
