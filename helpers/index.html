@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Helper Town">
+<meta name="theme-color" content="#7fd36b">
+<title>Noah's Helper Town</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2b3a1f;--hi:#ff7a00}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:'Fredoka',system-ui,sans-serif;color:var(--ink);background:linear-gradient(#a8e6ff,#c9f0ff 40%,#9be08a 40%,#6cc35a);touch-action:manipulation}
+button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
+#hud{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;justify-content:space-between;align-items:center;padding:10px 14px}
+.round{width:72px;height:72px;border-radius:24px;background:#fff;font-size:36px;box-shadow:0 7px 0 #b9dca8,0 10px 18px rgba(0,0,0,.12)}
+.round:active{transform:translateY(6px);box-shadow:0 1px 0 #b9dca8}
+.coins{display:flex;align-items:center;gap:8px;background:linear-gradient(#fff7c2,#ffd84a);font-weight:700;font-size:34px;padding:8px 24px 8px 14px;border-radius:40px;box-shadow:0 7px 0 #d69e00;border:4px solid #fff;color:#6b4200}
+.coins.bump{animation:bump .4s}@keyframes bump{50%{transform:scale(1.25)}}
+.screen{position:fixed;inset:0;display:none;overflow-y:auto;padding:96px 14px 70px}
+.screen.on{display:block;animation:fade .35s}@keyframes fade{from{opacity:0;transform:scale(.97)}}
+.wrap{max-width:940px;margin:0 auto;text-align:center}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes wig{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes jump{0%,100%{transform:translateY(0)}40%{transform:translateY(-40px) scale(1.12)}}
+.wig{animation:wig .45s 2}
+.big{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:84px;padding:12px 34px;border-radius:30px;border:5px solid #fff;font-size:30px;font-weight:700;color:#fff;box-shadow:0 9px 0 rgba(0,0,0,.2),0 14px 22px rgba(0,0,0,.15);text-decoration:none;margin:6px}
+.big:active{transform:translateY(7px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.green{background:linear-gradient(#7dffa8,#1fc764);color:#064d22}.pink{background:linear-gradient(#ffb0cb,#ff4f8b)}.purple{background:linear-gradient(#c6a8ff,#8e5cff)}.gold{background:linear-gradient(#ffe46b,#ffb300);color:#5a3500}.blue{background:linear-gradient(#8ee8ff,#2a9df4)}.red{background:linear-gradient(#ff9a8a,#e8322b)}
+.huge{font-size:46px;min-height:110px;padding:16px 60px;border-radius:40px}
+.pulse{animation:pulse 1.2s infinite}
+.ear{width:70px;height:70px;border-radius:50%;background:#ffd84a;font-size:34px;box-shadow:0 6px 0 #d69e00;flex:0 0 auto}
+.ear:active{transform:translateY(5px);box-shadow:0 1px 0 #d69e00}
+.ask{display:inline-flex;align-items:center;gap:12px;background:#fff;border-radius:34px;padding:10px 12px 10px 24px;font-size:clamp(22px,4.6vw,34px);font-weight:700;box-shadow:0 8px 0 #b9dca8;margin-bottom:14px;text-align:left}
+.ttl{font-size:clamp(50px,11vw,100px);font-weight:700;line-height:.95;color:#fff;text-shadow:0 6px 0 #e07a00,0 12px 0 #9a4f00,0 18px 26px rgba(0,0,0,.25);animation:bob 3s ease-in-out infinite}
+.panel{background:#fff;border-radius:34px;padding:18px;box-shadow:0 10px 0 #b9dca8;margin:12px 0}
+.photo{width:100%;max-width:460px;border-radius:24px;border:6px solid #fff;box-shadow:0 8px 0 #b9dca8}
+/* town map */
+#town{position:relative;height:min(66vh,580px);border-radius:40px;background:#8fd46f;border:6px solid #fff;overflow:hidden;box-shadow:0 12px 0 #4f9a3a}
+#town .road{position:absolute;background:#9a9a9a;border:4px dashed rgba(255,255,255,.0)}
+#town .road.h{height:44px;left:0;right:0;transform:translateY(-50%);background:linear-gradient(#8d8d8d,#8d8d8d) ,#8d8d8d;box-shadow:inset 0 0 0 3px #7a7a7a}
+#town .road.h::after{content:'';position:absolute;left:0;right:0;top:50%;border-top:5px dashed #fff;transform:translateY(-50%)}
+#town .road.v{width:44px;top:0;bottom:0;transform:translateX(-50%);background:#8d8d8d}
+#town .road.v::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:5px dashed #fff;transform:translateX(-50%)}
+.lot{position:absolute;transform:translate(-50%,-50%);width:clamp(96px,17vw,150px);aspect-ratio:1;border-radius:30px;background:linear-gradient(#fffbe9,#ffe9a8);border:5px solid #fff;box-shadow:0 10px 0 #c98f1f;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:clamp(14px,2.4vw,19px);line-height:1.05;z-index:2;padding:4px}
+.lot .i{font-size:clamp(40px,7vw,62px);line-height:1.1}
+.lot.lock{filter:grayscale(1);opacity:.7}
+.lot.cur{box-shadow:0 10px 0 #c98f1f,0 0 0 8px rgba(255,255,255,.7),0 0 40px 14px #fff59d;animation:pulse 1.4s infinite}
+.lot .flag{position:absolute;top:-28px;right:-8px;font-size:42px}
+#mayor{position:absolute;font-size:clamp(56px,9vw,84px);transform:translate(-50%,-110%);transition:left 1s cubic-bezier(.5,-.4,.5,1.4),top 1s cubic-bezier(.5,-.4,.5,1.4);z-index:4;pointer-events:none}
+.deco{position:absolute;transform:translate(-50%,-50%) scale(0);font-size:clamp(32px,6vw,54px);z-index:3;pointer-events:none;filter:drop-shadow(0 4px 0 rgba(0,0,0,.18));transition:transform .7s cubic-bezier(.5,-.6,.5,1.8)}
+.deco.on{transform:translate(-50%,-50%) scale(1)}
+#mk{margin-top:16px;background:#fff;border-radius:28px;padding:14px 16px;box-shadow:0 8px 0 #b9dca8;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
+#mk .ic{font-size:56px}#mk .tx{font-size:clamp(20px,4.4vw,28px);font-weight:700;text-align:left;flex:1;min-width:180px}
+#mk .cost{font-size:.8em;color:#b07a00}
+#mkBar{height:22px;background:#eaf7e2;border-radius:12px;overflow:hidden;margin-top:12px;border:3px solid #fff;box-shadow:0 4px 0 #b9dca8}
+#mkBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2ecc71,#ffd84a);transition:width 1s}
+/* L1 sort */
+#sortCard{display:inline-flex;flex-direction:column;align-items:center;background:#fff;border-radius:34px;padding:16px 26px;box-shadow:0 10px 0 #b9dca8;min-width:260px;max-width:96%;margin:8px 0 18px}
+#sortCard .e{font-size:110px;line-height:1.1}
+#sortCard img{width:220px;height:150px;object-fit:cover;border-radius:20px;margin-bottom:6px}
+#sortCard .t{font-size:clamp(24px,5vw,34px);font-weight:700}
+.bins{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.bin{flex:1;min-width:150px;max-width:340px;border-radius:34px;border:6px solid #fff;padding:16px 10px;font-size:clamp(24px,5vw,34px);font-weight:700;box-shadow:0 10px 0 rgba(0,0,0,.2)}
+.bin .e{display:block;font-size:70px}.bin small{display:block;font-size:.6em;font-weight:600;opacity:.85}
+.bin.g{background:linear-gradient(#ffe9a8,#ffc94a)}.bin.s{background:linear-gradient(#bfe8ff,#5cc0ff)}
+.bin:active{transform:translateY(6px)}
+.tray{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.tray .slot{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.5);border:3px dashed #fff;font-size:30px;display:flex;align-items:center;justify-content:center}
+.tray .slot.full{background:#fff;border-style:solid}
+/* L2 helpers */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.who{background:#fff;border-radius:30px;border:6px solid #fff;padding:14px 6px;box-shadow:0 9px 0 #b9dca8;font-size:22px;font-weight:700}
+.who .e{display:block;font-size:66px}
+.who.sel{border-color:#ffb300;box-shadow:0 9px 0 #d69e00,0 0 0 6px rgba(255,216,74,.5);transform:scale(1.04)}
+.badge{display:inline-block;font-size:16px;padding:4px 12px;border-radius:14px;margin-top:6px;color:#fff}
+.badge.service{background:#2a9df4}.badge.goods{background:#e09a00}
+/* L3 dress up */
+.dress{display:flex;gap:18px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.pupBox{background:#fff;border-radius:34px;padding:12px;box-shadow:0 10px 0 #b9dca8;width:min(330px,92vw)}
+.pupBox svg{width:100%;height:auto;display:block}
+.items{display:grid;grid-template-columns:repeat(2,minmax(130px,1fr));gap:12px;flex:1;min-width:280px;max-width:520px}
+.item{background:#fff;border-radius:26px;border:5px solid #fff;padding:8px;box-shadow:0 8px 0 #b9dca8;font-size:20px;font-weight:700}
+.item .pic{height:74px;display:flex;align-items:center;justify-content:center;font-size:58px}
+.item .pic svg{height:74px;width:auto}
+.item.used{opacity:.3;pointer-events:none}
+/* steps */
+.step{display:flex;align-items:center;gap:14px;background:#fff;border-radius:30px;padding:14px;margin:14px 0;box-shadow:0 8px 0 #b9dca8;text-align:left;border:5px solid #fff}
+.step.now{border-color:#ffd84a;box-shadow:0 8px 0 #d69e00,0 0 0 6px rgba(255,216,74,.4)}
+.step.done{background:#e8fff0;border-color:#2ecc71;opacity:.85}
+.step .n{width:56px;height:56px;border-radius:50%;background:#8e5cff;color:#fff;font-size:30px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.step .e{font-size:54px;flex:0 0 auto}
+.step .t{flex:1;font-size:clamp(19px,3.8vw,27px);font-weight:600;line-height:1.25}
+.step .ok{min-height:72px;padding:8px 18px;font-size:22px;margin:0}
+@media(max-width:600px){.step{flex-wrap:wrap}.step .t{flex:1 1 55%}.step .ok{width:100%}.pupBox{width:min(330px,72vw)}}
+.pics{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.pics figure{margin:0;background:#fff;border-radius:24px;padding:8px;box-shadow:0 8px 0 #b9dca8;width:min(260px,44vw)}
+.pics img{width:100%;border-radius:18px;display:block}
+.pics figcaption{font-weight:700;font-size:18px;margin-top:6px}
+/* L5 words */
+.wordGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:640px;margin:0 auto}
+.wcard{background:#fff;border-radius:28px;border:6px solid #fff;padding:12px;box-shadow:0 9px 0 #b9dca8;font-size:clamp(22px,4.6vw,32px);font-weight:700}
+.wcard .e{display:block;font-size:56px}
+.wcard.good{border-color:#2ecc71;background:#e8fff0}
+/* L6 writing */
+.detail{background:#fff;border-radius:30px;padding:16px;box-shadow:0 9px 0 #b9dca8;text-align:left;margin:12px 0}
+.detail h3{margin:0 0 8px;font-size:clamp(22px,4.6vw,30px);display:flex;align-items:center;gap:10px}
+.starters{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.starter{background:linear-gradient(#8ee8ff,#2a9df4);color:#fff;font-weight:700;font-size:clamp(19px,3.8vw,25px);border-radius:22px;padding:12px 18px;border:4px solid #fff;box-shadow:0 6px 0 #1f7fc2}
+.starter:active{transform:translateY(5px);box-shadow:0 1px 0 #1f7fc2}
+.line{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:clamp(22px,4.6vw,32px);font-weight:600;background:#fffbe9;border-radius:22px;padding:12px;border:4px dashed #ffc94a}
+.line .st{color:#1f6fb8;font-weight:700}
+.line input{flex:1;min-width:200px;font:inherit;font-size:clamp(22px,4.6vw,32px);border:4px solid #2a9df4;border-radius:18px;padding:8px 12px;-webkit-user-select:text;user-select:text;color:var(--ink);background:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{background:#fff3c4;border:3px solid #ffd84a;border-radius:18px;padding:6px 12px;font-size:20px;font-weight:700}
+.msg{margin-top:10px;font-size:clamp(19px,3.8vw,25px);font-weight:700;min-height:1.3em}
+.msg.bad{color:#d0352b}.msg.ok{color:#139c4b}
+.done3{font-size:clamp(22px,4.6vw,30px);font-weight:600;line-height:1.4;text-align:left}
+.done3 p{margin:6px 0;background:#e8fff0;border-radius:18px;padding:8px 14px}
+/* show + checklist */
+.check{display:flex;align-items:center;gap:12px;background:#fff;border-radius:24px;padding:12px;margin:10px 0;box-shadow:0 6px 0 #b9dca8;text-align:left;font-size:clamp(18px,3.6vw,24px);font-weight:600}
+.check .s{font-size:40px;flex:0 0 auto}.check .t{flex:1}
+.check .big{min-height:62px;font-size:20px;padding:6px 16px;margin:0}
+/* overlay + fx */
+.ov{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(30,70,20,.5);padding:16px}
+.ov.on{display:flex;animation:fade .3s}
+.box{background:#fff;border-radius:44px;padding:26px 34px;text-align:center;box-shadow:0 12px 0 #b9dca8;animation:popin .5s cubic-bezier(.3,1.6,.6,1);max-width:540px}
+@keyframes popin{from{transform:scale(.3)}}
+.box .bi{font-size:120px;animation:jump .9s infinite}.box h2{font-size:38px;margin:8px 0 18px}
+.fx{position:fixed;pointer-events:none;z-index:90;font-size:36px;animation:fly .9s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
+#conf{position:fixed;inset:0;pointer-events:none;z-index:85}
+#reset{position:fixed;right:10px;bottom:10px;z-index:46;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.5);font-size:20px}
+#printArea{display:none}
+@media print{
+ body{background:#fff;overflow:visible;height:auto}
+ body>*:not(#printArea){display:none!important}
+ #printArea{display:block;font-family:'Fredoka',Arial,sans-serif;color:#000;padding:10px 24px}
+ #printArea h1{font-size:30px;margin:0 0 6px}
+ #printArea .nm{font-size:20px;margin-bottom:14px}
+ #printArea .pbox{border:3px dashed #888;border-radius:16px;height:330px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#777;margin-bottom:18px}
+ #printArea p{font-size:26px;line-height:1.6;margin:0 0 10px}
+}
+</style>
+</head>
+<body>
+<div id="hud" style="display:none"><button class="round" id="mapBtn" aria-label="Town map">🗺️</button><div class="coins" id="coins">🪙 <span id="cn">0</span></div><button class="round" id="muteBtn" aria-label="Sound">🔊</button></div>
+<button id="reset" aria-label="Grown-up: hold 3 seconds to reset">⚙️</button>
+
+<section class="screen on" id="title"><div class="wrap">
+  <div class="ttl">HELPER<br>TOWN</div>
+  <div style="font-size:120px;margin:14px 0;animation:jump 1.2s infinite">🐻</div>
+  <img class="photo" src="img/workers.jpg" alt="Community workers" style="max-width:360px">
+  <div style="margin-top:18px"><button class="big green huge pulse" id="playBtn">▶ PLAY</button></div>
+</div></section>
+
+<section class="screen" id="map"><div class="wrap">
+  <div class="ask"><span id="mapAsk">Tap the glowing lot!</span> <button class="ear" id="mapEar">👂</button></div>
+  <div id="town"></div>
+  <div id="mkBar"><i></i></div>
+  <div id="mk"></div>
+</div></section>
+
+<section class="screen" id="l1"><div class="wrap">
+  <div class="ask">Goods or Services? <button class="ear" data-say="Goods are things you can touch and use, like bread or toys. Services are jobs people do to help you, like a doctor checkup. Is this goods, or a service?">👂</button></div>
+  <div id="l1intro">
+    <div class="panel" style="font-size:clamp(20px,4vw,28px);font-weight:600;text-align:left">
+      <p>🧺 <b>Goods</b> are <b>things</b> you can touch and use. Like bread, apples, and toys.</p>
+      <p>🤝 <b>Services</b> are <b>jobs</b> people do to help you. Like a doctor checkup.</p>
+    </div>
+    <div class="pics"><figure><img src="img/doctor.jpg" alt="A doctor"><figcaption>A doctor gives a service</figcaption></figure><figure><img src="img/trash.jpg" alt="A trash collector"><figcaption>A trash collector gives a service</figcaption></figure></div>
+    <button class="big green huge pulse" id="l1go">LET'S SORT!</button>
+  </div>
+  <div id="l1game" style="display:none">
+    <div id="sortCard"></div>
+    <div class="bins">
+      <button class="bin g" data-b="goods"><span class="e">🧺</span>GOODS<small>things</small></button>
+      <button class="bin s" data-b="service"><span class="e">🤝</span>SERVICES<small>helping jobs</small></button>
+    </div>
+    <div class="tray" id="tray1"></div>
+  </div>
+</div></section>
+
+<section class="screen" id="l2"><div class="wrap">
+  <div class="ask">Pick a helper for your puppet! <button class="ear" data-say="Tap a helper to hear what they do. Then pick one for your puppet!">👂</button></div>
+  <div class="grid" id="whoGrid"></div>
+  <div id="l2pick" style="margin-top:18px"></div>
+</div></section>
+
+<section class="screen" id="l3"><div class="wrap">
+  <div class="ask"><span id="l3ask">Dress your puppet!</span> <button class="ear" id="l3ear">👂</button></div>
+  <div class="dress"><div class="pupBox" id="pup3"></div><div class="items" id="items3"></div></div>
+</div></section>
+
+<section class="screen" id="l4"><div class="wrap">
+  <div class="ask">Make your REAL puppet! <button class="ear" data-say="Now make a real puppet! It can be a paper bag puppet, or a drawing. Look at these puppets other kids made.">👂</button></div>
+  <div class="pics"><figure><img src="img/puppet-fire.jpg" alt="Firefighter puppet example"><figcaption>A firefighter puppet</figcaption></figure><figure><img src="img/puppet-doctor.jpg" alt="Doctor puppet example"><figcaption>A doctor puppet</figcaption></figure></div>
+  <div id="steps4"></div>
+</div></section>
+
+<section class="screen" id="l5"><div class="wrap">
+  <div class="ask"><span id="l5ask">Word Tools</span> <button class="ear" id="l5ear">👂</button></div>
+  <div class="wordGrid" id="wordGrid"></div>
+</div></section>
+
+<section class="screen" id="l6"><div class="wrap">
+  <div class="ask">Write 3 sentences! <button class="ear" id="l6ear">👂</button></div>
+  <div id="l6done" class="done3"></div>
+  <div id="l6now"></div>
+</div></section>
+
+<section class="screen" id="l7"><div class="wrap">
+  <div class="ttl" style="font-size:clamp(44px,9vw,84px)">PUPPET SHOW! 🎪</div>
+  <div class="dress" style="margin-top:16px"><div class="pupBox" id="pup7"></div><div class="panel done3" id="show7" style="flex:1;min-width:280px;max-width:560px"></div></div>
+  <button class="big purple" id="readBtn">🔊 READ IT TO ME</button>
+  <h2 style="color:#fff;text-shadow:0 3px 0 #4f9a3a;font-size:34px;margin:20px 0 4px">✅ Teacher Checklist</h2>
+  <div id="checks"></div>
+  <h2 style="color:#fff;text-shadow:0 3px 0 #4f9a3a;font-size:34px;margin:20px 0 4px">📤 Send it to your teacher</h2>
+  <div class="step"><span class="e">📸</span><span class="t">Take a <b>picture</b> of your puppet.</span><button class="ear" data-say="Ask Mom or Dad to take a picture of your puppet.">👂</button></div>
+  <div class="step"><span class="e">📋</span><span class="t">Tap <b>COPY</b> to copy your 3 sentences.</span><button class="ear" data-say="Tap copy to copy your three sentences.">👂</button></div>
+  <div class="step"><span class="e">📥</span><span class="t">Open the lesson. Go to <b>Page 4</b> and find the <b>drop box</b>. Add the picture and paste your sentences.</span><button class="ear" data-say="Open the lesson. Go to page 4 and find the drop box. Add the picture of your puppet, and paste your sentences. Ask Mom or Dad to help.">👂</button></div>
+  <button class="big blue" id="copyBtn">📋 COPY</button>
+  <button class="big gold" id="printBtn">🖨️ PRINT</button>
+</div></section>
+
+<div class="ov" id="ov"><div class="box"><div class="bi" id="ovIc">🏆</div><h2 id="ovTx"></h2><button class="big green" id="ovOk">GO! ➜</button></div></div>
+<canvas id="conf"></canvas>
+<div id="printArea"></div>
+
+<script>
+const $=s=>document.querySelector(s);const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KEY='helperTown_noah_v1';
+const FRESH=()=>({coins:0,done:[0,0,0,0,0,0,0],w:null,dress:[],l4:[],words:0,sent:[null,null,null],facts:false,mk:0,muted:false});
+let S;try{S=Object.assign(FRESH(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){S=FRESH()}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+/* sound + voice */
+let AC=null;function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function tone(f,d,type='sine',vol=.2,t0=0,f2){const a=ac();if(!a||S.muted)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function sfx(n){({pop:()=>tone(450,.14,'sine',.35,0,1200),coin:()=>{tone(988,.08,'square',.1);tone(1319,.25,'square',.1,.08)},yay:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.2,'triangle',.22,i*.1)),boing:()=>tone(200,.4,'sine',.3,0,500),build:()=>{tone(220,.08,'square',.15);tone(260,.08,'square',.15,.12);tone(220,.08,'square',.15,.24)},honk:()=>{tone(392,.18,'sawtooth',.12);tone(392,.18,'sawtooth',.12,.25)}}[n]||(()=>{}))()}
+let VOICE=null;function pickVoice(){if(!('speechSynthesis' in window))return;const vs=speechSynthesis.getVoices();for(const p of['Samantha','Google US English','Microsoft Aria','Microsoft Jenny','Karen','Microsoft Zira']){const v=vs.find(v=>v.name.includes(p));if(v){VOICE=v;return}}VOICE=vs.find(v=>/^en/i.test(v.lang))||null}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+let sT=null;function say(t){if(!('speechSynthesis' in window)||!t)return;clearTimeout(sT);speechSynthesis.cancel();sT=setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);if(VOICE)u.voice=VOICE;u.lang=VOICE?VOICE.lang:'en-US';u.rate=.82;u.pitch=1.1;speechSynthesis.speak(u)},60)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-say]');if(b){ac();say(b.dataset.say)}});
+
+/* fx */
+function burst(x,y,ch=['✨','⭐','🪙'],n=12){for(let i=0;i<n;i++){const p=document.createElement('div');p.className='fx';p.textContent=ch[i%ch.length];const a=Math.random()*6.28,r=70+rnd(100);p.style.left=x+'px';p.style.top=y+'px';p.style.setProperty('--dx',Math.cos(a)*r+'px');p.style.setProperty('--dy',Math.sin(a)*r+'px');document.body.appendChild(p);setTimeout(()=>p.remove(),950)}}
+const cv=$('#conf'),cx=cv.getContext('2d');let parts=[],raf=null;
+function confetti(){cv.width=innerWidth;cv.height=innerHeight;for(let i=0;i<140;i++)parts.push({x:rnd(cv.width),y:-rnd(cv.height/2),vx:Math.random()*3-1.5,vy:2+Math.random()*4,r:0,vr:Math.random()*.3,s:8+rnd(8),c:['#ff7a00','#ffd84a','#2ecc71','#2a9df4','#ff4f8b'][i%5]});if(!raf)raf=requestAnimationFrame(loop)}
+function loop(){cx.clearRect(0,0,cv.width,cv.height);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore()});parts=parts.filter(p=>p.y<cv.height+20);raf=parts.length?requestAnimationFrame(loop):(cx.clearRect(0,0,cv.width,cv.height),null)}
+function hud(){$('#cn').textContent=S.coins;$('#muteBtn').textContent=S.muted?'🔇':'🔊'}
+function addCoins(n,x,y){S.coins+=n;save();hud();sfx('coin');const c=$('#coins');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump');burst(x??innerWidth/2,y??innerHeight/2)}
+let ovCb=null;function showOv(ic,tx,sp,cb){$('#ovIc').textContent=ic;$('#ovTx').textContent=tx;$('#ov').classList.add('on');sfx('yay');confetti();say(sp||tx);ovCb=cb}
+$('#ovOk').onclick=()=>{$('#ov').classList.remove('on');const c=ovCb;ovCb=null;c&&c()};
+
+/* ---------- community helpers (facts, clothes, tools, words) ---------- */
+const W={
+ fire:{one:'firefighter',many:'Firefighters',e:'🧑‍🚒',type:'service',does:'Firefighters put out fires and rescue people. That is a service.',
+  hat:{n:'fire helmet',k:'helmet',c:'#e8322b'},clothes:{n:'fire coat',k:'coat',c:'#e8322b',x:'#ffd84a'},
+  tools:[{n:'fire extinguisher',e:'🧯'},{n:'ladder',e:'🪜'}],
+  words:[['fire truck','🚒'],['rescue','🛟'],['brave','💪'],['emergency','🚨'],['fire station','🏢'],['smoke','💨']]},
+ doctor:{one:'doctor',many:'Doctors',e:'🧑‍⚕️',type:'service',does:'Doctors help sick people get well. That is a service.',
+  hat:{n:'face mask',k:'mask',c:'#bfe3ff'},clothes:{n:'white coat',k:'lab',c:'#ffffff'},
+  tools:[{n:'stethoscope',e:'🩺'},{n:'thermometer',e:'🌡️'}],
+  words:[['checkup','📋'],['medicine','💊'],['healthy','🍎'],['sick','🤒'],['hospital','🏥'],['heartbeat','❤️']]},
+ trash:{one:'trash collector',many:'Trash collectors',e:'🚛',type:'service',does:'Trash collectors pick up our trash and keep the town clean. That is a service.',
+  hat:{n:'work cap',k:'cap',c:'#ff8c1a'},clothes:{n:'safety vest',k:'vest',c:'#ff8c1a'},
+  tools:[{n:'trash can',e:'🗑️'},{n:'work gloves',e:'🧤'}],
+  words:[['garbage truck','🚛'],['recycle','♻️'],['clean','✨'],['neighborhood','🏘️'],['garbage','🗑️'],['trash day','📅']]},
+ builder:{one:'construction worker',many:'Construction workers',e:'👷',type:'service',does:'Construction workers build houses, schools, and roads. That is a service.',
+  hat:{n:'hard hat',k:'helmet',c:'#ffd60a'},clothes:{n:'work vest',k:'vest',c:'#c8f031'},
+  tools:[{n:'hammer',e:'🔨'},{n:'saw',e:'🪚'}],
+  words:[['build','🏗️'],['buildings','🏢'],['roads','🛣️'],['crane','🏗️'],['tools','🧰'],['safe','🦺']]},
+ police:{one:'police officer',many:'Police officers',e:'👮',type:'service',does:'Police officers keep people safe and help them follow the laws. That is a service.',
+  hat:{n:'police hat',k:'cap',c:'#1d2f6f'},clothes:{n:'police uniform',k:'uniform',c:'#1d2f6f',x:'#ffd84a'},
+  tools:[{n:'police car',e:'🚓'},{n:'radio',e:'📻'}],
+  words:[['protect','🛡️'],['laws','📜'],['badge','⭐'],['safe','🦺'],['help','🤝'],['police station','🏢']]},
+ mail:{one:'mail carrier',many:'Mail carriers',e:'📬',type:'service',does:'Mail carriers bring letters and packages to our homes. That is a service.',
+  hat:{n:'mail cap',k:'cap',c:'#2a6fdb'},clothes:{n:'mail uniform',k:'uniform',c:'#8fc1ff',x:'#e8322b'},
+  tools:[{n:'mail bag',e:'👜'},{n:'letters',e:'✉️'}],
+  words:[['deliver','🚚'],['letters','✉️'],['packages','📦'],['mailbox','📬'],['post office','🏤'],['address','🏠']]},
+ baker:{one:'baker',many:'Bakers',e:'🧑‍🍳',type:'goods',does:'Bakers make bread, cakes, and treats. Those are goods.',
+  hat:{n:'chef hat',k:'chef',c:'#ffffff'},clothes:{n:'apron',k:'apron',c:'#ffffff'},
+  tools:[{n:'mixing bowl',e:'🥣'},{n:'big spoon',e:'🥄'}],
+  words:[['bread','🍞'],['bake','🔥'],['oven','♨️'],['dough','🫓'],['bakery','🏪'],['treats','🧁']]},
+ farmer:{one:'farmer',many:'Farmers',e:'🧑‍🌾',type:'goods',does:'Farmers grow food like corn, apples, and carrots. Those are goods.',
+  hat:{n:'straw hat',k:'straw',c:'#e9c46a'},clothes:{n:'overalls',k:'overalls',c:'#3a6fb0'},
+  tools:[{n:'tractor',e:'🚜'},{n:'bucket',e:'🪣'}],
+  words:[['grow','🌱'],['crops','🌽'],['food','🥕'],['harvest','🧺'],['farm','🏡'],['plant','🌻']]}};
+const WK=Object.keys(W);
+const me=()=>W[S.w];
+
+/* puppet drawing (paper bag puppet, like the class examples) */
+function hatSVG(h){const c=h.c;switch(h.k){
+ case 'helmet':return `<path d="M52 62 Q100 -4 148 62 Z" fill="${c}" stroke="#0003" stroke-width="3"/><ellipse cx="100" cy="62" rx="64" ry="11" fill="${c}" stroke="#0003" stroke-width="3"/>${c==='#e8322b'?'<circle cx="100" cy="38" r="12" fill="#ffd84a"/>':''}`;
+ case 'cap':return `<path d="M58 60 Q100 6 142 60 Z" fill="${c}" stroke="#0003" stroke-width="3"/><path d="M100 56 h56 q-6 14 -56 10 z" fill="${c}" stroke="#0003" stroke-width="3"/><circle cx="100" cy="40" r="7" fill="#ffd84a"/>`;
+ case 'chef':return `<circle cx="74" cy="30" r="22" fill="#fff" stroke="#bbb" stroke-width="3"/><circle cx="100" cy="20" r="25" fill="#fff" stroke="#bbb" stroke-width="3"/><circle cx="126" cy="30" r="22" fill="#fff" stroke="#bbb" stroke-width="3"/><rect x="66" y="36" width="68" height="26" rx="6" fill="#fff" stroke="#bbb" stroke-width="3"/>`;
+ case 'straw':return `<path d="M64 58 Q100 8 136 58 Z" fill="${c}" stroke="#a07a20" stroke-width="3"/><ellipse cx="100" cy="60" rx="84" ry="13" fill="${c}" stroke="#a07a20" stroke-width="3"/><rect x="66" y="48" width="68" height="8" fill="#e8322b"/>`;
+ case 'mask':return `<rect x="66" y="98" width="68" height="34" rx="10" fill="${c}" stroke="#7ab6e0" stroke-width="3"/><path d="M66 106 L46 98 M134 106 L154 98" stroke="#7ab6e0" stroke-width="3"/><path d="M74 110 h52 M74 120 h52" stroke="#7ab6e0" stroke-width="2"/>`}return ''}
+function clothesSVG(cl){const c=cl.c,body=`M44 150 h112 v100 h-112 z`;switch(cl.k){
+ case 'coat':return `<path d="${body}" fill="${c}" stroke="#0003" stroke-width="3"/><rect x="44" y="200" width="112" height="12" fill="${cl.x}"/><rect x="44" y="232" width="112" height="10" fill="${cl.x}"/><line x1="100" y1="150" x2="100" y2="250" stroke="#0004" stroke-width="3"/>`;
+ case 'lab':return `<path d="${body}" fill="#fff" stroke="#aaa" stroke-width="3"/><path d="M100 150 L80 190 M100 150 L120 190" stroke="#aaa" stroke-width="3" fill="none"/><rect x="116" y="200" width="26" height="22" fill="none" stroke="#aaa" stroke-width="3"/><path d="M110 202 h4" stroke="#2a9df4" stroke-width="4"/>`;
+ case 'vest':return `<path d="${body}" fill="#5b6b7a"/><path d="M44 150 h40 v100 h-40 z M116 150 h40 v100 h-40 z" fill="${c}" stroke="#0003" stroke-width="3"/><rect x="44" y="200" width="40" height="9" fill="#e0e0e0"/><rect x="116" y="200" width="40" height="9" fill="#e0e0e0"/><rect x="44" y="226" width="40" height="9" fill="#e0e0e0"/><rect x="116" y="226" width="40" height="9" fill="#e0e0e0"/>`;
+ case 'uniform':return `<path d="${body}" fill="${c}" stroke="#0003" stroke-width="3"/><path d="M128 172 l5 10 l11 1 l-8 7 l3 11 l-11 -6 l-11 6 l3 -11 l-8 -7 l11 -1z" fill="${cl.x}"/><line x1="100" y1="150" x2="100" y2="250" stroke="#0004" stroke-width="3"/><circle cx="100" cy="190" r="3" fill="#fff"/><circle cx="100" cy="215" r="3" fill="#fff"/>`;
+ case 'apron':return `<path d="${body}" fill="#7fb2e5"/><path d="M70 150 h60 v100 h-60 z" fill="#fff" stroke="#bbb" stroke-width="3"/><rect x="82" y="196" width="36" height="22" fill="none" stroke="#bbb" stroke-width="3"/>`;
+ case 'overalls':return `<path d="${body}" fill="#e8322b"/><path d="M60 190 h80 v60 h-80 z" fill="${c}" stroke="#0003" stroke-width="3"/><path d="M66 150 v42 M134 150 v42" stroke="${c}" stroke-width="12"/><circle cx="66" cy="192" r="5" fill="#ffd84a"/><circle cx="134" cy="192" r="5" fill="#ffd84a"/>`}return ''}
+function puppetSVG(w,have){have=have||{};const hat=have.hat?hatSVG(w.hat):'',maskTop=w.hat.k==='mask';
+ return `<svg viewBox="0 -4 200 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Puppet">
+ <rect x="40" y="40" width="120" height="216" rx="10" fill="#c9a26b" stroke="#a57f4a" stroke-width="3"/>
+ <path d="M40 140 h120" stroke="#a57f4a" stroke-width="3"/>
+ <rect x="14" y="160" width="30" height="70" rx="12" fill="#c9a26b" stroke="#a57f4a" stroke-width="3"/>
+ <rect x="156" y="160" width="30" height="70" rx="12" fill="#c9a26b" stroke="#a57f4a" stroke-width="3"/>
+ <circle cx="80" cy="88" r="9" fill="#fff" stroke="#333" stroke-width="2"/><circle cx="82" cy="89" r="4" fill="#222"/>
+ <circle cx="120" cy="88" r="9" fill="#fff" stroke="#333" stroke-width="2"/><circle cx="122" cy="89" r="4" fill="#222"/>
+ <path d="M84 114 Q100 128 116 114" stroke="#7a3b2a" stroke-width="4" fill="none" stroke-linecap="round"/>
+ <circle cx="68" cy="108" r="7" fill="#f4978e" opacity=".6"/><circle cx="132" cy="108" r="7" fill="#f4978e" opacity=".6"/>
+ ${have.clothes?clothesSVG(w.clothes):''}
+ ${hat}
+ ${have.t0?`<text x="22" y="262" font-size="46" text-anchor="middle">${w.tools[0].e}</text>`:''}
+ ${have.t1?`<text x="178" y="262" font-size="46" text-anchor="middle">${w.tools[1].e}</text>`:''}
+ </svg>`}
+function partPic(w,part){if(part==='hat')return `<svg viewBox="${w.hat.k==='mask'?'40 90 120 50':'10 -4 180 80'}">${hatSVG(w.hat)}</svg>`;
+ if(part==='clothes')return `<svg viewBox="40 146 120 108">${clothesSVG(w.clothes)}</svg>`;return w.tools[+part[1]].e}
+const partName=(w,part)=>part==='hat'?w.hat.n:part==='clothes'?w.clothes.n:w.tools[+part[1]].n;
+const haveFrom=list=>({hat:list.includes('hat'),clothes:list.includes('clothes'),t0:list.includes('t0'),t1:list.includes('t1')});
+
+/* ---------- screens ---------- */
+let timers=[];const later=(f,ms)=>timers.push(setTimeout(f,ms));
+function show(id){timers.forEach(t=>{clearTimeout(t);clearInterval(t)});timers=[];document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#'+id).classList.add('on');$('#'+id).scrollTop=0;$('#hud').style.display=id==='title'?'none':'flex';
+ ({map:mapInit,l1:l1Init,l2:l2Init,l3:l3Init,l4:l4Init,l5:l5Init,l6:l6Init,l7:l7Init}[id]||(()=>{}))()}
+$('#mapBtn').onclick=()=>{sfx('pop');show('map')};$('#muteBtn').onclick=()=>{S.muted=!S.muted;save();hud();if(S.muted&&'speechSynthesis' in window)speechSynthesis.cancel()};
+$('#playBtn').onclick=()=>{ac();sfx('honk');say("Hi! I'm Mayor Bear! Welcome to Helper Town. Community helpers make our town work. Let's build the town and make a helper puppet!");show('map')};
+function finish(i,msg){const first=!S.done[i];S.done[i]=1;save();if(first)addCoins(20);sfx('build');showOv(LOTS[i].b,msg,msg,()=>show('map'))}
+
+/* ---------- town map + makeover ---------- */
+const LOTS=[
+ {n:'Goods or Services',i:'🧺',b:'🏛️',x:16,y:18},
+ {n:'Pick a Helper',i:'🧑‍🚒',b:'🏢',x:50,y:18},
+ {n:'Dress Up',i:'🧢',b:'🏬',x:84,y:18},
+ {n:'Make a Puppet',i:'✂️',b:'🛖',x:16,y:80},
+ {n:'Word Tools',i:'📚',b:'🏫',x:50,y:80},
+ {n:'Write It',i:'✏️',b:'🏤',x:84,y:80},
+ {n:'Puppet Show',i:'🎪',b:'🎪',x:50,y:49}];
+const open=i=>i===0||S.done[i-1]||S.done[i];
+const MK=[
+ {ic:'🌳',n:'Plant trees',cost:10,x:33,y:34,line:'Trees make our town pretty!'},
+ {ic:'🚌',n:'Add a school bus',cost:15,x:30,y:48,line:'Beep beep! A bus driver gives a service. They drive kids to school!'},
+ {ic:'🚒',n:'Add a fire truck',cost:15,x:70,y:48,line:'A fire truck! Firefighters use it to get to fires fast!'},
+ {ic:'🚑',n:'Add an ambulance',cost:20,x:67,y:34,line:'An ambulance takes sick or hurt people to the hospital!'},
+ {ic:'🚛',n:'Add a garbage truck',cost:20,x:33,y:64,line:'A garbage truck! Trash collectors keep our town clean!'},
+ {ic:'🚓',n:'Add a police car',cost:25,x:67,y:64,line:'A police car! Police officers keep us safe!'},
+ {ic:'⛲',n:'Build a fountain',cost:25,x:6,y:48,line:'A fountain in the town square! So pretty!'},
+ {ic:'🎡',n:'Build a fair',cost:30,x:94,y:48,line:'A fair for the whole town! Helper Town is all done!'}];
+function mapInit(){hud();const cur=S.done.indexOf(0);const t=$('#town');
+ t.innerHTML=`<div class="road h" style="top:48%"></div><div class="road v" style="left:50%"></div>`+
+  LOTS.map((l,i)=>`<button class="lot ${open(i)?'':'lock'} ${i===cur?'cur':''}" data-i="${i}" style="left:${l.x}%;top:${l.y}%"><span class="i">${S.done[i]?l.b:open(i)?(i===cur?'🏗️':l.i):'🚧'}</span>${l.n}${S.done[i]?'<span class="flag">⭐</span>':''}</button>`).join('')+
+  MK.map((m,i)=>`<div class="deco ${i<S.mk?'on':''}" id="d${i}" style="left:${m.x}%;top:${m.y}%">${m.ic}</div>`).join('')+
+  `<div id="mayor" style="left:${LOTS[cur<0?6:cur].x}%;top:${LOTS[cur<0?6:cur].y}%">🐻</div>`;
+ t.querySelectorAll('.lot').forEach(b=>b.onclick=()=>{ac();const i=+b.dataset.i;if(!open(i)){sfx('boing');b.classList.add('wig');setTimeout(()=>b.classList.remove('wig'),900);say('That lot is not ready yet. Build the glowing lot first!');return}
+  if(i>=2&&!S.w){say('First, pick a helper!');show('l2');return}
+  sfx('pop');const m=$('#mayor');m.style.left=LOTS[i].x+'%';m.style.top=LOTS[i].y+'%';setTimeout(()=>show('l'+(i+1)),900)});
+ const k=mkDraw();
+ let line;
+ if(k&&k.can)line=`You have ${S.coins} coins! Tap BUY IT to ${k.m.n.toLowerCase()}!`;
+ else if(cur<0)line='The whole town is built! Tap the Puppet Show to send your work to your teacher.';
+ else if(cur===0&&S.coins===0)line='Our town needs helpers! Tap the glowing lot to start building.';
+ else line=`Tap the glowing lot to build ${LOTS[cur].n}!`;
+ $('#mapAsk').textContent=cur<0?'Town built! 🎉':'Tap the glowing lot!';$('#mapEar').onclick=()=>say(line);later(()=>say(line),300)}
+function mkDraw(){const f=S.mk/MK.length;$('#mkBar i').style.width=f*100+'%';const m=MK[S.mk],box=$('#mk');
+ if(!m){box.innerHTML='<span class="ic">🏆</span><span class="tx">Helper Town is all fixed up!</span>';return null}
+ const can=S.coins>=m.cost;
+ box.innerHTML=`<span class="ic">${m.ic}</span><span class="tx">${m.n}<br><span class="cost">Costs 🪙 ${m.cost}</span></span><button class="ear" data-say="${m.n}. It costs ${m.cost} coins.">👂</button>${can?'<button class="big gold pulse" id="mkGo" style="margin:0">BUY IT!</button>':''}`;
+ if(can)$('#mkGo').onclick=mkDo;return {m,can}}
+function mkDo(){const m=MK[S.mk];if(!m||S.coins<m.cost)return;ac();S.coins-=m.cost;S.mk++;save();hud();sfx('honk');
+ const d=$('#d'+(S.mk-1));d.classList.add('on');mkDraw();const r=d.getBoundingClientRect();burst(r.x+r.width/2,r.y+r.height/2,['✨','🌟','🪙'],16);say(m.line);
+ if(S.mk>=MK.length)later(()=>showOv('🏙️','Helper Town is done!','Hooray! You built the whole town!',()=>show('map')),3000)}
+
+/* ---------- L1: goods or services sort ---------- */
+const SORT=[
+ {t:'Bread from the baker',e:'🍞',a:'goods',why:'Bread is a thing you can touch and eat. It is goods!'},
+ {t:'Apples from the farmer',e:'🍎',a:'goods',why:'Apples are things you can eat. They are goods!'},
+ {t:'A new toy',e:'🧸',a:'goods',why:'A toy is a thing you can hold. It is goods!'},
+ {t:'Milk from the farm',e:'🥛',a:'goods',why:'Milk is a thing you can drink. It is goods!'},
+ {t:'New shoes',e:'👟',a:'goods',why:'Shoes are things you can wear. They are goods!'},
+ {t:'A doctor checkup',img:'img/doctor.jpg',a:'service',why:'The doctor does a job to help you. That is a service!'},
+ {t:'Taking away the trash',img:'img/trash.jpg',a:'service',why:'Trash collectors do a job for the town. That is a service!'},
+ {t:'Putting out a fire',e:'🚒',a:'service',why:'Firefighters do a job to keep us safe. That is a service!'},
+ {t:'Bringing the mail',e:'📬',a:'service',why:'A mail carrier does a job for you. That is a service!'},
+ {t:'A haircut',e:'💇',a:'service',why:'A barber does a job for you. That is a service!'}];
+let deck=[],l1i=0,l1busy=false;
+function l1Init(){$('#l1intro').style.display='';$('#l1game').style.display='none';
+ say('Goods are things you can touch and use, like bread and toys. Services are jobs people do to help you, like a doctor checkup. Tap, let\'s sort!')}
+$('#l1go').onclick=()=>{ac();sfx('pop');deck=shuffle(SORT.slice());l1i=0;$('#l1intro').style.display='none';$('#l1game').style.display='';l1Card()};
+function l1Card(){l1busy=false;const c=deck[l1i];
+ $('#sortCard').innerHTML=`${c.img?`<img src="${c.img}" alt="">`:`<span class="e">${c.e}</span>`}<span class="t">${c.t}</span><button class="ear" style="margin-top:8px" data-say="${c.t}. Goods or a service?">👂</button>`;
+ $('#tray1').innerHTML=deck.map((d,i)=>`<div class="slot ${i<l1i?'full':''}">${i<l1i?(d.a==='goods'?'🧺':'🤝'):''}</div>`).join('');
+ say(`${c.t}. Is it goods, or a service?`)}
+document.querySelectorAll('.bin').forEach(b=>b.onclick=()=>{if(l1busy||!deck.length)return;ac();const c=deck[l1i];
+ if(b.dataset.b===c.a){l1busy=true;const r=b.getBoundingClientRect();addCoins(2,r.x+r.width/2,r.y);say(c.why);l1i++;
+  if(l1i>=deck.length)later(()=>finish(0,'You sorted them all!'),2600);else later(l1Card,2600)}
+ else{sfx('boing');b.classList.remove('wig');void b.offsetWidth;b.classList.add('wig');say(c.a==='goods'?'Hmm. Can you touch it and hold it? Then it is goods!':'Hmm. Is someone doing a job to help you? Then it is a service!')}});
+
+/* ---------- L2: pick a helper ---------- */
+let pick=null;
+function l2Init(){pick=S.w;drawWho();say('Tap a helper to hear what they do. Then pick one for your puppet!')}
+function drawWho(){$('#whoGrid').innerHTML=WK.map(k=>{const w=W[k];return `<button class="who ${pick===k?'sel':''}" data-k="${k}"><span class="e">${w.e}</span>${w.one}<br><span class="badge ${w.type}">${w.type==='goods'?'🧺 goods':'🤝 service'}</span></button>`}).join('');
+ document.querySelectorAll('.who').forEach(b=>b.onclick=()=>{ac();sfx('pop');pick=b.dataset.k;drawWho();say(W[pick].does)});
+ $('#l2pick').innerHTML=pick?`<button class="big green huge pulse" id="pickBtn">PICK ${W[pick].one.toUpperCase()}!</button>`:'';
+ if(pick)$('#pickBtn').onclick=()=>{ac();
+  if(S.w&&S.w!==pick&&(S.dress.length||S.sent.some(Boolean))){if(!confirm(`Switch to ${W[pick].one}? Your puppet and sentences will start over.`))return;S.dress=[];S.l4=[];S.words=0;S.sent=[null,null,null];S.facts=false;for(let i=2;i<7;i++)S.done[i]=0}
+  S.w=pick;save();finish(1,`You picked a ${W[pick].one}!`)}}
+
+/* ---------- L3: dress the puppet ---------- */
+const PARTS=['hat','clothes','t0','t1'];
+function l3Init(){const w=me();drawPup3();
+ const mine=PARTS.filter(p=>!S.dress.includes(p)).map(p=>({p,mine:true,pic:partPic(w,p),n:partName(w,p)}));
+ const otherKeys=shuffle(WK.filter(k=>k!==S.w));const myNames=PARTS.map(p=>partName(w,p));const wrong=[];
+ for(const k of otherKeys){const o=W[k];const p=PARTS[rnd(4)];const n=partName(o,p);if(!myNames.includes(n)&&!wrong.some(x=>x.n===n))wrong.push({p,mine:false,pic:partPic(o,p),n,k});if(wrong.length>=3)break}
+ const all=shuffle([...mine,...wrong]);
+ $('#items3').innerHTML=all.map((it,i)=>`<button class="item" data-i="${i}"><div class="pic">${it.pic}</div>${it.n}</button>`).join('');
+ document.querySelectorAll('#items3 .item').forEach(b=>b.onclick=()=>{ac();const it=all[+b.dataset.i];
+  if(it.mine){S.dress.push(it.p);save();b.classList.add('used');sfx('pop');drawPup3();const r=b.getBoundingClientRect();addCoins(3,r.x+r.width/2,r.y);
+   const kind=it.p==='hat'?'wear on their head':it.p==='clothes'?'wear':'use';say(`Yes! ${w.many} ${kind} a ${it.n}!`);
+   if(PARTS.every(p=>S.dress.includes(p)))later(()=>finish(2,'Your puppet is dressed!'),2200)}
+  else{sfx('boing');b.classList.remove('wig');void b.offsetWidth;b.classList.add('wig');say(`Hmm, a ${it.n} is for a ${W[it.k].one}. Not a ${w.one}!`)}});
+ const ln=`Dress your ${w.one} puppet! Find the special clothes and tools a ${w.one} uses.`;$('#l3ask').textContent=`Dress your ${w.one}!`;$('#l3ear').onclick=()=>say(ln);say(ln)}
+function drawPup3(){$('#pup3').innerHTML=puppetSVG(me(),haveFrom(S.dress))}
+
+/* ---------- L4: make the real puppet ---------- */
+function l4Init(){const w=me();const steps=[
+ {e:'🛍️',t:'Get a <b>paper bag</b> or paper. You can also <b>draw</b> your puppet!',s:'Get a paper bag, or a piece of paper. You can also draw your puppet. Both are OK!'},
+ {e:'🙂',t:'Make the <b>face</b>: eyes, nose, and a smile.',s:'Make the face. Eyes, a nose, and a smile.'},
+ {e:'🧢',t:`Make the <b>${w.hat.n}</b>.`,s:`Make the ${w.hat.n}. That shows your puppet is a ${w.one}.`},
+ {e:'👕',t:`Make the <b>${w.clothes.n}</b>.`,s:`Make the ${w.clothes.n}. Special clothes help people know the job.`},
+ {e:'🧰',t:`Make the tools: <b>${w.tools[0].n}</b> and <b>${w.tools[1].n}</b>.`,s:`Make the tools. A ${w.tools[0].n}, and a ${w.tools[1].n}. Your teacher wants to see clothes and tools!`},
+ {e:'🖍️',t:'<b>Color</b> it and glue it on!',s:'Color your puppet, and glue everything on.'},
+ {e:'📸',t:'Ask Mom or Dad to take a <b>picture</b> of your puppet.',s:'Ask Mom or Dad to take a picture of your puppet. You will send it to your teacher.'}];
+ stepList('steps4',steps,'l4',()=>finish(3,'You made your puppet!'))}
+function stepList(id,steps,key,onAll){const cur=steps.findIndex((_,i)=>!S[key].includes(i));
+ $('#'+id).innerHTML=steps.map((st,i)=>`<div class="step ${S[key].includes(i)?'done':i===cur?'now':''}"><span class="n">${i+1}</span><span class="e">${st.e}</span><span class="t">${st.t}</span><button class="ear" data-say="${esc(st.s)}">👂</button>${S[key].includes(i)?'<span style="font-size:40px">✅</span>':`<button class="big green ok" data-i="${i}">I did it ✅</button>`}</div>`).join('');
+ document.querySelectorAll('#'+id+' .ok').forEach(b=>b.onclick=()=>{ac();const i=+b.dataset.i;if(!S[key].includes(i))S[key].push(i);save();const r=b.getBoundingClientRect();addCoins(2,r.x,r.y);
+  const nx=steps.findIndex((_,k)=>!S[key].includes(k));stepList(id,steps,key,onAll);if(nx<0){onAll();return}say('Great! Next: '+steps[nx].s);
+  const el=document.querySelector('#'+id+' .step.now');if(el)el.scrollIntoView({behavior:'smooth',block:'center'})});
+ if(cur>=0)say(steps[cur].s)}
+
+/* ---------- L5: word tools (listen and tap) ---------- */
+let l5order=[],l5i=0,l5busy=false;
+function l5Init(){const w=me();l5order=shuffle(w.words.map(x=>x[0]));l5i=0;$('#l5ask').textContent=`${w.one} Word Tools`;l5Round()}
+function l5Round(){l5busy=false;const w=me(),target=l5order[l5i];
+ const opts=shuffle([target,...shuffle(w.words.map(x=>x[0]).filter(x=>x!==target)).slice(0,3)]);
+ $('#wordGrid').innerHTML=opts.map(o=>`<button class="wcard" data-w="${esc(o)}"><span class="e">${w.words.find(x=>x[0]===o)[1]}</span>${o}</button>`).join('');
+ const ln=`Find the word: ${target}. (${l5i+1} of ${l5order.length})`;$('#l5ear').onclick=()=>say(`Find the word, ${target}.`);say(`Find the word, ${target}.`);
+ document.querySelectorAll('.wcard').forEach(b=>b.onclick=()=>{if(l5busy)return;ac();
+  if(b.dataset.w===target){l5busy=true;b.classList.add('good');const r=b.getBoundingClientRect();addCoins(2,r.x+r.width/2,r.y);say(`${target}! Good job. Use ${target} in your sentences!`);l5i++;S.words=Math.max(S.words,l5i);save();
+   if(l5i>=l5order.length)later(()=>finish(4,'You got all your word tools!'),2200);else later(l5Round,2000)}
+  else{sfx('boing');b.classList.remove('wig');void b.offsetWidth;b.classList.add('wig');say(`That says ${b.dataset.w}. Find ${target}.`)}})}
+
+/* ---------- L6: write 3 sentences (Noah types, nothing is written for him) ---------- */
+function details(){const w=me(),M=w.many,m=M.toLowerCase();return [
+ {h:'Detail 1: What do they do?',ic:'🤝',q:`What does a ${w.one} do for our community? Do they make goods, or give a service?`,
+  st:w.type==='service'?[`${M} give a service when they`,`${M} help our community by`,`${M} make goods like`]:[`${M} ${S.w==='farmer'?'grow':'make'} goods like`,`${M} help our community by`,`${M} give a service when they`],
+  wrongIdx:2,wrongSay:w.type==='service'?`Hmm. Does a ${w.one} make things to sell, or do a job to help? A ${w.one} gives a service!`:`Hmm. Does a ${w.one} make things, or do a job for you? A ${w.one} makes goods!`},
+ {h:'Detail 2: What do they use or wear?',ic:'🧰',q:`What tools does a ${w.one} use? What special clothes do they wear? Use your word tools!`,st:[`${M} use`,`${M} wear`,`${M} work at`]},
+ {h:'Detail 3: Why do we need them?',ic:'💖',q:`Why does our community need ${m}? How do they help people?`,st:[`${M} are important because`,`${M} help people when`,`Our community needs ${m} because`]}]}
+let l6cur=null;
+function l6Init(){const D=details();const n=S.sent.findIndex(s=>!s||!s.ok);
+ $('#l6done').innerHTML=S.sent.filter(s=>s&&s.ok).map(s=>`<p>✅ ${esc(full(s))}</p>`).join('');
+ if(n<0){$('#l6now').innerHTML='';finish(5,'You wrote 3 sentences!');return}
+ l6cur={n,st:S.sent[n]?.st||null};drawDetail(D[n]);$('#l6ear').onclick=()=>say(D[n].q);say(D[n].q)}
+const full=s=>(s.st+' '+s.tx).replace(/\s+/g,' ').trim();
+function drawDetail(d){const w=me(),n=l6cur.n;
+ $('#l6now').innerHTML=`<div class="detail"><h3><span style="font-size:44px">${d.ic}</span>${d.h}<button class="ear" data-say="${esc(d.q)}">👂</button></h3>
+  ${l6cur.st?'':`<div style="font-size:22px;font-weight:600">Tap how you want to start:</div><div class="starters">${d.st.map((s,i)=>`<button class="starter" data-i="${i}">${esc(s)} ...</button>`).join('')}</div>`}
+  ${l6cur.st?`<div class="line"><span class="st">${esc(l6cur.st)}</span><input id="tx" autocomplete="off" autocapitalize="off" spellcheck="true" placeholder="type the rest..." value="${esc(S.sent[n]?.tx||'')}"></div>
+  <div style="font-size:18px;font-weight:700;margin-top:10px">🧰 Word tools (tap to add):</div><div class="chips">${[...w.words.map(x=>x[0]),w.tools[0].n,w.tools[1].n,w.hat.n,w.clothes.n].filter((v,i,a)=>a.indexOf(v)===i).map(x=>`<button class="chip">${esc(x)}</button>`).join('')}</div>
+  <div class="msg" id="msg"></div>
+  <button class="big blue" id="newStart">↩ NEW START</button><button class="big green" id="checkBtn">✔ CHECK IT</button>`:''}</div>`;
+ if(!l6cur.st){document.querySelectorAll('.starter').forEach(b=>b.onclick=()=>{ac();const i=+b.dataset.i;
+  if(d.wrongIdx===i){sfx('boing');b.classList.remove('wig');void b.offsetWidth;b.classList.add('wig');say(d.wrongSay);return}
+  sfx('pop');l6cur.st=d.st[i];drawDetail(d);say(`${d.st[i]}. Now you type the rest!`);setTimeout(()=>$('#tx')?.focus(),200)});return}
+ const tx=$('#tx');
+ document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ac();sfx('pop');const v=tx.value,pos=tx.selectionStart??v.length;const before=v.slice(0,pos),after=v.slice(pos);
+  const add=(before&&!/\s$/.test(before)?' ':'')+c.textContent+(after&&!/^\s/.test(after)?' ':'');tx.value=before+add+after;const np=(before+add).length;tx.focus();tx.setSelectionRange(np,np);say(c.textContent)});
+ $('#newStart').onclick=()=>{ac();l6cur.st=null;S.sent[n]=null;save();drawDetail(d)};
+ $('#checkBtn').onclick=()=>{ac();const s={st:l6cur.st,tx:tx.value.trim()};S.sent[n]=s;save();const p=problem(s,n);const m=$('#msg');
+  if(p){sfx('boing');m.className='msg bad';m.textContent=p.t;say(p.s||p.t);
+   if(p.soft){m.insertAdjacentHTML('beforeend',' <button class="big gold" id="okSpell" style="min-height:56px;font-size:20px;padding:4px 14px">My spelling is right</button>');
+    $('#okSpell').onclick=()=>{S.okWords=[...(S.okWords||[]),p.soft];save();$('#checkBtn').click()}}
+   return}
+  s.ok=true;S.sent[n]=s;save();m.className='msg ok';m.textContent='Great sentence!';const r=$('#checkBtn').getBoundingClientRect();addCoins(5,r.x+r.width/2,r.y);say(full(s)+'. Great sentence!');later(l6Init,3200)};
+ tx.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#checkBtn').click()}})}
+/* spelling help: only flags near-misses of words he is likely to use */
+const COMMON='people community because help helps they them their there when with when what make makes give gives keep keeps safe sick fires fire trucks truck house houses home homes food town city kids children school clean work works and the have every day night water hose put out take bring brings drive drives friend friends important need needs everyone hose hoses boots helmet helmets coat coats wear wears uses save saves water truck rescue rescues sirens animals cats trees store money buy sell sells bakes grows cooks letters drives hospital patients nurses'.split(' ');
+function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]}
+function dict(){const w=me();const set=new Set(COMMON);[...w.words.map(x=>x[0]),w.tools[0].n,w.tools[1].n,w.hat.n,w.clothes.n,w.one,w.many].forEach(p=>p.toLowerCase().split(/\s+/).forEach(x=>set.add(x)));[...set].forEach(x=>{set.add(x+'s');set.add(x+'es')});return set}
+function problem(s,n){const tx=s.tx,f=full(s);
+ const words=tx.replace(/[.!?,]/g,' ').trim().split(/\s+/).filter(Boolean);
+ if(words.length<3)return {t:'Tell me more! Add a few more words.',s:'Tell me more! Add a few more words about it.'};
+ if(/ {2,}/.test(tx))return {t:'Oops, two spaces. Use one finger space.'};
+ const lead=me().many.toLowerCase();if(tx.toLowerCase().startsWith(lead)||tx.toLowerCase().startsWith(me().one))return {t:`You already said "${me().many}" at the start! Just tell what they do.`,s:`You already said ${me().many} at the start. Just tell what they do. Read it out loud and see.`};
+ if(/\bi\b/.test(tx))return {t:'The word I is always a big letter.'};
+ if(!/[.!]$/.test(tx))return {t:'Put a period at the end. ( . )',s:'Put a period at the end of your sentence.'};
+ const D=dict(),okW=S.okWords||[];for(const raw of words){const x=raw.toLowerCase();if(x.length<5||D.has(x)||okW.includes(x))continue;
+  for(const d of D){if(d[0]===x[0]&&Math.abs(d.length-x.length)<=2&&lev(x,d)<=(x.length>=8?2:1))return {soft:x,t:`Check the spelling of "${raw}". Did you mean "${d}"?`,s:`Check the spelling of ${raw}. Did you mean ${d}? ${d.split('').join(', ')}.`}}}
+ for(let k=0;k<3;k++){if(k!==n&&S.sent[k]&&S.sent[k].ok&&S.sent[k].tx.toLowerCase()===tx.toLowerCase())return {t:'You already said that! Tell me something new.'}}
+ return null}
+
+/* ---------- L7: puppet show, rubric checklist, send ---------- */
+function vocabUsed(){const w=me();const bank=[...w.words.map(x=>x[0]),w.tools[0].n,w.tools[1].n,w.hat.n,w.clothes.n];const txt=S.sent.filter(Boolean).map(full).join(' ').toLowerCase();return bank.filter((b,i,a)=>a.indexOf(b)===i&&txt.includes(b.toLowerCase()))}
+function l7Init(){const w=me();$('#pup7').innerHTML=puppetSVG(w,haveFrom(PARTS));
+ const ss=S.sent.filter(s=>s&&s.ok).map(full);
+ $('#show7').innerHTML=`<div style="font-size:22px;font-weight:700;color:#8e5cff">My community helper: a ${w.one}</div>`+ss.map(t=>`<p>${esc(t)}</p>`).join('');
+ drawChecks();say(`Wow! Your ${w.one} puppet is ready for the show! Let's check your work with the teacher checklist.`)}
+function drawChecks(){const w=me(),ss=S.sent.filter(s=>s&&s.ok),vu=vocabUsed(),okP=ss.every((s,i)=>!problem(s,S.sent.indexOf(s)));
+ const puppetOk=[2,3,4].every(i=>S.l4.includes(i));
+ const rows=[
+  {ok:puppetOk,t:`<b>Puppet:</b> special clothes AND tools (${w.hat.n}, ${w.clothes.n}, ${w.tools[0].n}, ${w.tools[1].n})`,fix:'l4',s:'Your real puppet needs special clothes and tools.'},
+  {ok:ss.length===3,t:'<b>Description:</b> 3 sentences with 3 details about the job',fix:'l6',s:'Write 3 sentences with 3 details.'},
+  {ok:S.facts,t:'<b>Facts:</b> Read it to Mom or Dad. Is it all true?',btn:true,s:'Read your sentences to Mom or Dad. Is everything true?'},
+  {ok:vu.length>=2,t:`<b>Vocabulary:</b> use 2 or more job words${vu.length?` (you used: ${vu.map(esc).join(', ')})`:''}`,fix:'l6r',s:'Use two or more job words, like your word tools.'},
+  {ok:ss.length===3&&okP,t:'<b>Capitals, periods, spelling</b> are correct',fix:'l6',s:'Check capitals, periods, and spelling.'}];
+ $('#checks').innerHTML=rows.map((r,i)=>`<div class="check"><span class="s">${r.ok?'✅':'⬜'}</span><span class="t">${r.t}</span><button class="ear" data-say="${esc(r.s)}">👂</button>${r.ok?'':r.btn?`<button class="big green" data-c="${i}">It's true ✅</button>`:`<button class="big pink" data-c="${i}">Fix it</button>`}</div>`).join('');
+ document.querySelectorAll('#checks [data-c]').forEach(b=>b.onclick=()=>{ac();const r=rows[+b.dataset.c];
+  if(r.btn){S.facts=true;save();sfx('coin');drawChecks();say('Great! Your facts are true!');return}
+  if(r.fix==='l6r'){if(!confirm('Rewrite your sentences to use more job words?'))return;S.sent=[null,null,null];S.done[5]=0;S.done[6]=0;save();show('l6');return}
+  if(r.fix==='l4'){S.l4=S.l4.filter(i=>i<2);save()}
+  show(r.fix)});
+ if(rows.every(r=>r.ok)&&!S.done[6]){S.done[6]=1;save();later(()=>{addCoins(20);showOv('🎪','Checklist all done!','Your checklist is all done! Now take a picture of your puppet and send it to your teacher!')},1200)}}
+$('#readBtn').onclick=()=>{ac();say(S.sent.filter(s=>s&&s.ok).map(full).join(' '))};
+$('#copyBtn').onclick=async()=>{ac();const t=S.sent.filter(s=>s&&s.ok).map(full).join(' ');
+ try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_){}a.remove()}
+ sfx('coin');say('Copied! Now paste it in the drop box.');const b=$('#copyBtn');b.textContent='✅ COPIED!';setTimeout(()=>b.textContent='📋 COPY',2500)};
+$('#printBtn').onclick=()=>{ac();const w=me();$('#printArea').innerHTML=`<h1>Work in the Community</h1><div class="nm">Name: Noah &nbsp;&nbsp;&nbsp; My community worker: a ${esc(w.one)}</div><div class="pbox">Puppet picture goes here</div>`+S.sent.filter(s=>s&&s.ok).map(s=>`<p>${esc(full(s))}</p>`).join('');window.print()};
+
+(()=>{const b=$('#reset');let t=null;b.addEventListener('pointerdown',()=>{t=setTimeout(()=>{if(confirm('Reset Helper Town?')){localStorage.removeItem(KEY);location.reload()}},3000)});['pointerup','pointerleave','pointercancel'].forEach(e=>b.addEventListener(e,()=>clearTimeout(t)))})();
+hud();
+</script>
+</body>
+</html>
