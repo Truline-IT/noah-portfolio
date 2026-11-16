@@ -155,6 +155,11 @@ button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
  #printArea .nm{font-size:20px;margin-bottom:14px}
  #printArea .pbox{border:3px dashed #888;border-radius:16px;height:330px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#777;margin-bottom:18px}
  #printArea p{font-size:26px;line-height:1.6;margin:0 0 10px}
+ #printArea h2{font-size:22px;margin:14px 0 6px}
+ #printArea .pl{list-style:none;padding:0;font-size:18px;line-height:1.7}
+ #printArea .pt{border-collapse:collapse;width:100%;font-size:16px}
+ #printArea .pt td,#printArea .pt th{border:1px solid #999;padding:6px 8px;text-align:left}
+ #printArea .pn{font-size:16px;margin-top:12px}
 }
 </style>
 </head>
@@ -463,7 +468,84 @@ function suppliesSVG(draw){const c=CRAFT[S.w];
  return `<svg viewBox="0 0 320 200">${draw?'<rect x="16" y="20" width="110" height="150" rx="6" fill="#fff" stroke="#999" stroke-width="3"/><path d="M30 50 h80 M30 70 h80" stroke="#cde" stroke-width="3"/>':'<rect x="20" y="30" width="96" height="150" rx="6" fill="#c9a26b" stroke="#a57f4a" stroke-width="3"/><path d="M20 80 h96" stroke="#a57f4a" stroke-width="3"/>'}
  ${c.paper.map((k,i)=>`<rect x="${140+i*20}" y="${20+i*14}" width="80" height="62" rx="4" fill="${HEX[k]}" stroke="#555" stroke-width="2"/>`).join('')}
  ${draw?'':'<text x="160" y="170" font-size="44">✂️</text>'}<text x="214" y="172" font-size="44">🖍️</text><text x="266" y="172" font-size="44">${draw?'✏️':'🧴'}</text></svg>`}
-function l4Steps(){const w=me(),c=CRAFT[S.w],P=h=>puppetSVG(w,h),draw=S.mode4==='draw',mask=w.hat.k==='mask';
+/* construction paper puppet (flat paper doll on a handle) */
+HEX.brown='#8b5a2b';HEX.purple='#7b4fd6';HEX.pink='#ff9fc0';
+const ALT={tan:'or brown, or peach',gray:'or white','light blue':'or blue','dark blue':'or blue, or purple'};
+const CP={
+ fire:{body:'red',bodyN:'fire coat',hatC:'red',pants:'red',shoes:'black',det:{c:'yellow',n:'coat stripes',t:'Cut 2 thin yellow strips. Glue them across the coat.'}},
+ doctor:{body:'white',bodyN:'white coat',hatC:'light blue',pants:'blue',shoes:'black',det:{c:null,n:'pocket',t:'Draw a pocket and a pen on the white coat with a crayon.'}},
+ trash:{body:'orange',bodyN:'safety vest',hatC:'orange',pants:'blue',shoes:'black',det:{c:'gray',n:'vest stripes',t:'Cut 4 thin gray strips. Glue them on the vest so cars can see.'}},
+ builder:{body:'green',bodyN:'work vest',hatC:'yellow',pants:'blue',shoes:'brown',det:{c:'gray',n:'vest stripes',t:'Cut 4 thin gray strips. Glue them on the vest so cars can see.'}},
+ police:{body:'dark blue',bodyN:'police uniform',hatC:'dark blue',pants:'dark blue',shoes:'black',det:{c:'yellow',n:'badge',t:'Cut a small yellow star. Glue it on as a badge.'}},
+ mail:{body:'light blue',bodyN:'mail uniform',hatC:'blue',pants:'dark blue',shoes:'black',det:{c:'red',n:'patch',t:'Cut a small red square. Glue it on the shirt as a patch.'}},
+ baker:{body:'blue',bodyN:'shirt',hatC:'white',pants:'black',shoes:'black',det:{c:'white',n:'apron',t:'Cut a smaller white rectangle. Glue it on the shirt as the apron.'}},
+ farmer:{body:'red',bodyN:'shirt',hatC:'yellow',pants:'blue',shoes:'brown',det:{c:'blue',n:'overalls',t:'Cut a blue square and 2 thin blue straps. Glue them on for the overalls.'}}};
+const SKIN='tan';
+const cn=c=>c+(ALT[c]?` (${ALT[c]})`:'');
+function dollSVG(w,h){h=h||{};const c=CP[S.w],sk=HEX[SKIN],bc=HEX[c.body];
+ return `<svg viewBox="0 -4 200 ${h.hand?336:318}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Paper puppet">
+ ${h.stick?'<rect x="90" y="140" width="20" height="190" rx="8" fill="#e3b778" stroke="#a57f4a" stroke-width="3"/>':''}
+ ${h.legs?`<rect x="58" y="246" width="34" height="48" fill="${HEX[c.pants]}" stroke="#0003" stroke-width="3"/><rect x="108" y="246" width="34" height="48" fill="${HEX[c.pants]}" stroke="#0003" stroke-width="3"/><ellipse cx="72" cy="300" rx="24" ry="11" fill="${HEX[c.shoes]}"/><ellipse cx="128" cy="300" rx="24" ry="11" fill="${HEX[c.shoes]}"/>`:''}
+ ${h.arms?`<rect x="14" y="154" width="32" height="66" rx="12" fill="${bc}" stroke="#0003" stroke-width="3"/><rect x="154" y="154" width="32" height="66" rx="12" fill="${bc}" stroke="#0003" stroke-width="3"/><circle cx="30" cy="228" r="13" fill="${sk}" stroke="#0003" stroke-width="2"/><circle cx="170" cy="228" r="13" fill="${sk}" stroke="#0003" stroke-width="2"/>`:''}
+ ${h.body?(h.detail?clothesSVG(w.clothes):`<rect x="44" y="150" width="112" height="100" fill="${bc}" stroke="#0003" stroke-width="3"/>`):''}
+ ${h.head?`<circle cx="100" cy="94" r="48" fill="${sk}" stroke="#a57f4a" stroke-width="3"/>`:''}
+ ${h.face?'<circle cx="80" cy="88" r="9" fill="#fff" stroke="#333" stroke-width="2"/><circle cx="82" cy="89" r="4" fill="#222"/><circle cx="120" cy="88" r="9" fill="#fff" stroke="#333" stroke-width="2"/><circle cx="122" cy="89" r="4" fill="#222"/><circle cx="100" cy="102" r="4" fill="#b5654a"/><path d="M84 114 Q100 128 116 114" stroke="#7a3b2a" stroke-width="4" fill="none" stroke-linecap="round"/>':''}
+ ${h.hat?hatSVG(w.hat):''}
+ ${h.t0?`<text x="30" y="258" font-size="44" text-anchor="middle">${w.tools[0].e}</text>`:''}
+ ${h.t1?`<text x="170" y="258" font-size="44" text-anchor="middle">${w.tools[1].e}</text>`:''}
+ ${h.glow?`<circle cx="${h.glow[0]}" cy="${h.glow[1]}" r="${h.glow[2]}" fill="none" stroke="#ffb300" stroke-width="5" stroke-dasharray="10 6"/>`:''}
+ ${h.hand?'<text x="100" y="334" font-size="50" text-anchor="middle">✊</text>':''}
+ ${h.cam?'<text x="172" y="40" font-size="48" text-anchor="middle">📸</text>':''}
+ </svg>`}
+function paperPieces(){const w=me(),c=CP[S.w];const L=[
+ {n:'head',c:SKIN,how:'Trace a cup. Cut out the circle.'},
+ {n:c.bodyN+' (body)',c:c.body,how:'1 big rectangle, as long as your hand.'},
+ {n:'2 arms',c:c.body,how:'2 strips, as long as your finger.'},
+ {n:'2 hands',c:SKIN,how:'2 small circles.'},
+ {n:'2 legs',c:c.pants,how:'2 rectangles.'},
+ {n:'2 shoes',c:c.shoes,how:'2 small ovals.'},
+ {n:w.hat.n,c:c.hatC,how:{mask:'A small rectangle to go over the mouth.',helmet:'A half circle with a long flat strip under it.',cap:'A half circle with a small bill sticking out on one side.',chef:'A rectangle with 3 puffy circles on top.',straw:'A half circle on top of a long, wide oval.'}[w.hat.k]}];
+ if(c.det.c)L.push({n:c.det.n,c:c.det.c,how:c.det.t});
+ L.push({n:w.tools[0].n,c:'white',how:'Draw it, color it, cut it out.'},{n:w.tools[1].n,c:'white',how:'Draw it, color it, cut it out.'});return L}
+function paperColors(){const m={};paperPieces().forEach(p=>{(m[p.c]=m[p.c]||[]).push(p.n)});return m}
+function supplyItems(){const cols=paperColors();return [
+ ...Object.keys(cols).map(k=>({k:'c-'+k,e:swatch(k),t:`<b>${cn(k)}</b> construction paper <small>for: ${cols[k].join(', ')}</small>`,s:`${k} construction paper${ALT[k]?', '+ALT[k]:''}. For the ${cols[k].join(', ')}.`})),
+ {k:'scissors',e:'✂️',t:'<b>Kid scissors</b>',s:'Kid scissors.'},
+ {k:'glue',e:'🧴',t:'<b>Glue stick</b>',s:'A glue stick.'},
+ {k:'crayons',e:'🖍️',t:'<b>Crayons</b> or markers',s:'Crayons or markers.'},
+ {k:'pencil',e:'✏️',t:'<b>Pencil</b>',s:'A pencil.'},
+ {k:'cup',e:'🥤',t:'A <b>cup</b> to trace a circle',s:'A cup, to trace a circle for the head.'},
+ {k:'tape',e:'🩹',t:'<b>Tape</b>',s:'Tape.'},
+ {k:'stick',e:'🥢',t:'A <b>craft stick</b>, straw, or paper roll for the handle',s:'A craft stick, a straw, or a rolled up piece of paper, for the handle.'}]}
+function supplyHTML(){const got=S.sup||[];return `<div style="text-align:left;margin-top:12px">${supplyItems().map(it=>`<button class="check" data-sup="${it.k}" style="width:100%;border:4px solid ${got.includes(it.k)?'#2ecc71':'#fff'};background:${got.includes(it.k)?'#e8fff0':'#fff'}"><span class="s">${got.includes(it.k)?'✅':'⬜'}</span><span style="font-size:30px">${it.e}</span><span style="flex:1;text-align:left">${it.t}</span></button>`).join('')}</div>
+ <button class="big gold" id="supPrint">🖨️ PRINT LIST FOR GROWN-UP</button>`}
+function printSupplies(){const w=me(),items=supplyItems(),pcs=paperPieces();const strip=h=>h.replace(/<[^>]+>/g,'');
+ $('#printArea').innerHTML=`<h1>Puppet Supplies: ${esc(w.one)}</h1><div class="nm">Work in the Community Portfolio. Noah's construction paper puppet.</div>
+ <h2>What you need</h2><ul class="pl">${items.map(i=>`<li>☐ ${esc(strip(i.t))}</li>`).join('')}</ul>
+ <h2>What to cut</h2><table class="pt"><tr><th>Piece</th><th>Paper color</th><th>How</th></tr>${pcs.map(p=>`<tr><td>${esc(p.n)}</td><td>${esc(cn(p.c))}</td><td>${esc(p.how)}</td></tr>`).join('')}</table>
+ <p class="pn">Tip: a grown-up can draw the shapes, and Noah cuts and glues. Then tape a craft stick on the back so it works like a puppet.</p>`;window.print()}
+function paperSteps(){const w=me(),c=CP[S.w],D=h=>dollSVG(w,h),mask=w.hat.k==='mask';
+ const base={head:1,face:1,body:1,detail:1,arms:1,legs:1};const sk=`${swatch(SKIN)} ${SKIN}`;
+ return [
+ {ill:`<svg viewBox="0 0 320 200">${Object.keys(paperColors()).map((k,i)=>`<rect x="${20+i*34}" y="${14+i*10}" width="120" height="90" rx="4" fill="${HEX[k]}" stroke="#555" stroke-width="2"/>`).join('')}<text x="40" y="186" font-size="40">✂️</text><text x="95" y="186" font-size="40">🧴</text><text x="150" y="186" font-size="40">🖍️</text><text x="205" y="186" font-size="40">✏️</text><text x="258" y="186" font-size="40">🥤</text></svg>`,
+  t:'Get everything you need. Tap each thing when you have it!',s:'Get everything you need. Tap each thing when you have it! A grown-up can help.',html:supplyHTML,
+  gate:()=>supplyItems().every(it=>(S.sup||[]).includes(it.k))?null:'Find everything first! Tap each thing on the list when you have it.'},
+ {ill:cutSVG(`<circle cx="100" cy="94" r="48" fill="${HEX[SKIN]}" stroke="#a57f4a" stroke-width="3"/>`,'52 46 96 96'),t:`Put a cup on the ${sk} paper. Trace around it with a pencil. Cut out the circle. This is the <b>head</b>!`,s:`Put a cup on the ${SKIN} paper. Trace around it with a pencil. Cut out the circle. This is the head! You can use brown or peach paper too.`},
+ {ill:D({head:1,face:1,glow:[100,100,40]}),t:'Draw two <b>eyes</b>, a <b>nose</b>, and a big <b>smile</b> on the head.',s:'Draw two eyes, a nose, and a big smile on the head.'},
+ {ill:cutSVG(`<rect x="44" y="150" width="112" height="100" fill="${HEX[c.body]}" stroke="#0003" stroke-width="3"/>`,'44 150 112 100'),t:`Cut a big rectangle from ${swatch(c.body)} <b>${c.body}</b> paper. Make it as long as your hand. This is the <b>${c.bodyN}</b>.`,s:`Cut a big rectangle from ${c.body} paper. Make it as long as your hand. This is the ${c.bodyN}.`},
+ {ill:D({head:1,face:1,body:1,glow:[100,146,30]}),t:'Glue the head on top of the body.',s:'Glue the head on top of the body.'},
+ {ill:D({head:1,face:1,body:1,detail:1,glow:[100,200,58]}),t:c.det.c?`${swatch(c.det.c)} ${c.det.t}`:c.det.t,s:c.det.t},
+ {ill:D({head:1,face:1,body:1,detail:1,arms:1,glow:[100,192,98]}),t:`Cut 2 strips of ${swatch(c.body)} ${c.body} paper for <b>arms</b>, and 2 small ${sk} circles for <b>hands</b>. Glue them on the sides.`,s:`Cut 2 strips of ${c.body} paper for arms, and 2 small ${SKIN} circles for hands. Glue them on the sides.`},
+ {ill:D({...base,glow:[100,276,52]}),t:`Cut 2 ${swatch(c.pants)} ${c.pants} rectangles for <b>legs</b> and 2 ${swatch(c.shoes)} ${c.shoes} ovals for <b>shoes</b>. Glue them at the bottom.`,s:`Cut 2 ${c.pants} rectangles for legs, and 2 ${c.shoes} ovals for shoes. Glue them at the bottom.`},
+ {ill:cutSVG(hatSVG(w.hat),mask?'60 94 80 42':'14 2 172 72'),t:`Cut the <b>${w.hat.n}</b> from ${swatch(c.hatC)} ${c.hatC} paper. Ask a grown-up to help with the shape.`,s:`Cut the ${w.hat.n} from ${c.hatC} paper. Ask a grown-up to help draw the shape.`},
+ {ill:D({...base,hat:1,glow:mask?[100,114,40]:[100,40,48]}),t:`Glue the ${w.hat.n} ${mask?'over the mouth':'on top of the head'}.`,s:`Glue the ${w.hat.n} ${mask?'over the mouth':'on top of the head'}.`},
+ {ill:toolCut(w.tools[0]),t:`Draw a <b>${w.tools[0].n}</b> on white paper. Color it and cut it out.`,s:`Draw a ${w.tools[0].n} on white paper. Color it, and cut it out.`},
+ {ill:D({...base,hat:1,t0:1,glow:[30,240,28]}),t:`Glue the ${w.tools[0].n} on one hand.`,s:`Glue the ${w.tools[0].n} on one hand.`},
+ {ill:toolCut(w.tools[1]),t:`Draw a <b>${w.tools[1].n}</b> on white paper. Color it and cut it out.`,s:`Draw a ${w.tools[1].n} on white paper. Color it, and cut it out.`},
+ {ill:D({...base,hat:1,t0:1,t1:1,glow:[170,240,28]}),t:`Glue the ${w.tools[1].n} on the other hand.`,s:`Glue the ${w.tools[1].n} on the other hand.`},
+ {ill:D({...base,hat:1,t0:1,t1:1,stick:1,hand:1}),t:'Turn it over. <b>Tape</b> a craft stick, straw, or rolled-up paper on the back. Now it is a <b>puppet</b>!',s:'Turn it over. Tape a craft stick, a straw, or a rolled up piece of paper on the back. Now it is a puppet you can hold!'},
+ {ill:D({...base,hat:1,t0:1,t1:1,cam:1}),t:'Hold it up and make it talk! Ask Mom or Dad to take a <b>picture</b>.',s:'Hold it up and make it talk! Ask Mom or Dad to take a picture of your puppet. You will send it to your teacher.'}]}
+function l4Steps(){if(S.mode4==='paper')return paperSteps();const w=me(),c=CRAFT[S.w],P=h=>puppetSVG(w,h),draw=S.mode4==='draw',mask=w.hat.k==='mask';
  const all={hat:1,clothes:1,t0:1,t1:1,paper:draw?'color':0};
  const hatGlow=mask?[100,114,40]:[100,40,46];
  if(!draw)return [
@@ -494,27 +576,31 @@ function l4Steps(){const w=me(),c=CRAFT[S.w],P=h=>puppetSVG(w,h),draw=S.mode4===
  {ill:P({paper:1,hat:1,clothes:1,t0:1,t1:1,glow:[176,248,28]}),t:`Draw a <b>${w.tools[1].n}</b> in the other hand.`,s:`Draw a ${w.tools[1].n} in the other hand.`},
  {ill:P({hat:1,clothes:1,t0:1,t1:1,paper:'color'}),t:'<b>Color</b> everything in. Use bright colors!',s:'Color everything in. Use bright colors!'},
  {ill:P({...all,cam:1}),t:'Ask Mom or Dad to take a <b>picture</b> of your drawing.',s:'Ask Mom or Dad to take a picture of your drawing. You will send it to your teacher.'}]}
-function l4Init(){if(typeof S.p4!=='number')S.p4=0;
+function l4Init(){if(typeof S.p4!=='number')S.p4=0;if(!S.cpAsked){S.cpAsked=1;if(S.mode4!=='paper'&&!S.done[3]){S.mode4=null;S.p4=0}save()}
  if(!S.mode4){const w=me();
-  $('#l4ask').textContent='How do you want to make it?';const ln=`How do you want to make your ${w.one} puppet? A paper bag puppet, or a drawing? Both are OK!`;$('#l4ear').onclick=()=>say(ln);
+  $('#l4ask').textContent='How do you want to make it?';const ln=`How do you want to make your ${w.one} puppet? You have construction paper, so try the construction paper puppet! You can also make a paper bag puppet, or a drawing.`;$('#l4ear').onclick=()=>say(ln);
   $('#l4body').innerHTML=`<div class="pics"><figure><img src="img/puppet-fire.jpg" alt="Firefighter puppet example"><figcaption>A firefighter puppet</figcaption></figure><figure><img src="img/puppet-doctor.jpg" alt="Doctor puppet example"><figcaption>A doctor puppet</figcaption></figure></div>
-   <div class="modes"><button class="mode" data-m="bag">${puppetSVG(w,{hat:1,clothes:1,t0:1,t1:1})}🛍️ Paper bag puppet</button><button class="mode" data-m="draw">${puppetSVG(w,{hat:1,clothes:1,t0:1,t1:1,paper:1})}🖍️ Draw it</button></div>`;
+   <div class="modes"><button class="mode" data-m="paper" style="border-color:#ffb300">${dollSVG(w,{head:1,face:1,body:1,detail:1,arms:1,legs:1,hat:1,t0:1,t1:1})}⭐ Construction paper puppet<br><small style="color:#139c4b">You have this paper!</small></button><button class="mode" data-m="bag">${puppetSVG(w,{hat:1,clothes:1,t0:1,t1:1})}🛍️ Paper bag puppet</button><button class="mode" data-m="draw">${puppetSVG(w,{hat:1,clothes:1,t0:1,t1:1,paper:1})}🖍️ Draw it</button></div>`;
   document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{ac();sfx('pop');S.mode4=b.dataset.m;S.p4=0;save();l4Init()});say(ln);return}
  l4Card()}
+let l4quiet=false;
 function l4Card(){const steps=l4Steps(),i=S.p4,w=me();
  $('#l4ask').textContent=S.mode4==='draw'?`Draw your ${w.one}!`:`Make your ${w.one} puppet!`;
- if(i>=steps.length){$('#l4body').innerHTML=`<div class="how"><div class="ill">${puppetSVG(w,{hat:1,clothes:1,t0:1,t1:1,paper:S.mode4==='draw'?'color':0})}</div><div class="t" style="margin-top:12px"><span style="text-align:center">🎉 Your puppet is done!</span></div>
-   <button class="big blue" id="l4again">↩ SEE STEPS AGAIN</button><button class="big purple" id="l4mode">🔁 ${S.mode4==='draw'?'MAKE A BAG PUPPET':'DRAW IT INSTEAD'}</button><button class="big green" id="l4map">🗺️ TOWN</button></div>`;
-  $('#l4again').onclick=()=>{ac();S.p4=0;save();l4Card()};$('#l4mode').onclick=()=>{ac();S.mode4=S.mode4==='draw'?'bag':'draw';S.p4=0;save();l4Card()};$('#l4map').onclick=()=>show('map');
+ if(i>=steps.length){$('#l4body').innerHTML=`<div class="how"><div class="ill">${S.mode4==='paper'?dollSVG(w,{head:1,face:1,body:1,detail:1,arms:1,legs:1,hat:1,t0:1,t1:1,stick:1}):puppetSVG(w,{hat:1,clothes:1,t0:1,t1:1,paper:S.mode4==='draw'?'color':0})}</div><div class="t" style="margin-top:12px"><span style="text-align:center">🎉 Your puppet is done!</span></div>
+   <button class="big blue" id="l4again">↩ SEE STEPS AGAIN</button><button class="big purple" id="l4mode">🔁 MAKE A DIFFERENT KIND</button><button class="big green" id="l4map">🗺️ TOWN</button></div>`;
+  $('#l4again').onclick=()=>{ac();S.p4=0;save();l4Card()};$('#l4mode').onclick=()=>{ac();S.mode4=null;S.p4=0;save();l4Init()};$('#l4map').onclick=()=>show('map');
   $('#l4ear').onclick=()=>say('Your puppet is done!');return}
  const st=steps[i];
  $('#l4body').innerHTML=`<div class="prog"><i style="width:${i/steps.length*100}%"></i></div><div class="how"><div class="ill">${st.ill}</div>
   <div class="num">Step ${i+1} of ${steps.length}</div>
-  <div class="t"><span>${st.t}</span><button class="ear" data-say="${esc(st.s)}">👂</button></div>
+  <div class="t"><span>${st.t}</span><button class="ear" data-say="${esc(st.s)}">👂</button></div>${st.html?st.html():''}
   <div style="margin-top:12px">${i>0?'<button class="big blue" id="l4back">◀ BACK</button>':'<button class="big blue" id="l4switch">🔁 CHANGE</button>'}<button class="big green pulse" id="l4ok">I DID IT ✅</button></div></div>`;
- $('#l4ear').onclick=()=>say(st.s);say(`Step ${i+1}. ${st.s}`);
+ $('#l4ear').onclick=()=>say(st.s);if(!l4quiet)say(`Step ${i+1}. ${st.s}`);l4quiet=false;
+ document.querySelectorAll('[data-sup]').forEach(b=>b.onclick=()=>{ac();const k=b.dataset.sup,g=S.sup=S.sup||[];const it=supplyItems().find(x=>x.k===k);
+  if(g.includes(k))S.sup=g.filter(x=>x!==k);else{g.push(k);sfx('pop')}save();const y=$('#l4').scrollTop;l4quiet=true;l4Card();$('#l4').scrollTop=y;if(S.sup.includes(k))say(it.s)});
+ if($('#supPrint'))$('#supPrint').onclick=()=>{ac();printSupplies()};
  if(i>0)$('#l4back').onclick=()=>{ac();sfx('pop');S.p4--;save();l4Card()};else $('#l4switch').onclick=()=>{ac();S.mode4=null;save();l4Init()};
- $('#l4ok').onclick=()=>{ac();const r=$('#l4ok').getBoundingClientRect();S.l4max=Math.max(S.l4max||0,i+1);if(S.l4max===i+1)addCoins(2,r.x+r.width/2,r.y);else sfx('pop');S.p4=i+1;save();
+ $('#l4ok').onclick=()=>{ac();if(st.gate){const g=st.gate();if(g){sfx('boing');say(g);return}}const r=$('#l4ok').getBoundingClientRect();S.l4max=Math.max(S.l4max||0,i+1);if(S.l4max===i+1)addCoins(2,r.x+r.width/2,r.y);else sfx('pop');S.p4=i+1;save();
   if(S.p4>=steps.length){finish(3,'You made your puppet!');return}l4Card();$('#l4').scrollTop=0}}
 function stepList(id,steps,key,onAll){const cur=steps.findIndex((_,i)=>!S[key].includes(i));
  $('#'+id).innerHTML=steps.map((st,i)=>`<div class="step ${S[key].includes(i)?'done':i===cur?'now':''}"><span class="n">${i+1}</span><span class="e">${st.e}</span><span class="t">${st.t}</span><button class="ear" data-say="${esc(st.s)}">👂</button>${S[key].includes(i)?'<span style="font-size:40px">✅</span>':`<button class="big green ok" data-i="${i}">I did it ✅</button>`}</div>`).join('');
