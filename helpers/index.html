@@ -254,6 +254,7 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const KEY='helperTown_noah_v1';
 const FRESH=()=>({coins:0,done:[0,0,0,0,0,0,0],w:null,dress:[],l4:[],words:0,sent:[null,null,null],facts:false,mk:0,muted:false});
 let S;try{S=Object.assign(FRESH(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){S=FRESH()}
+if(!S.cpAsked2){S.cpAsked2=1;if(S.mode4!=='paper'){S.mode4=null;S.p4=0}try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 
 /* sound + voice */
@@ -579,7 +580,7 @@ function l4Steps(){if(S.mode4==='paper')return paperSteps();const w=me(),c=CRAFT
  {ill:P({paper:1,hat:1,clothes:1,t0:1,t1:1,glow:[176,248,28]}),t:`Draw a <b>${w.tools[1].n}</b> in the other hand.`,s:`Draw a ${w.tools[1].n} in the other hand.`},
  {ill:P({hat:1,clothes:1,t0:1,t1:1,paper:'color'}),t:'<b>Color</b> everything in. Use bright colors!',s:'Color everything in. Use bright colors!'},
  {ill:P({...all,cam:1}),t:'Ask Mom or Dad to take a <b>picture</b> of your drawing.',s:'Ask Mom or Dad to take a picture of your drawing. You will send it to your teacher.'}]}
-function l4Init(){if(typeof S.p4!=='number')S.p4=0;if(!S.cpAsked){S.cpAsked=1;if(S.mode4!=='paper'&&!S.done[3]){S.mode4=null;S.p4=0}save()}
+function l4Init(){if(typeof S.p4!=='number')S.p4=0;
  if(!S.mode4){const w=me();
   $('#l4ask').textContent='How do you want to make it?';const ln=`How do you want to make your ${w.one} puppet? You have construction paper, so try the construction paper puppet! You can also make a paper bag puppet, or a drawing.`;$('#l4ear').onclick=()=>say(ln);
   $('#l4body').innerHTML=`<div class="pics"><figure><img src="img/puppet-fire.jpg" alt="Firefighter puppet example"><figcaption>A firefighter puppet</figcaption></figure><figure><img src="img/puppet-doctor.jpg" alt="Doctor puppet example"><figcaption>A doctor puppet</figcaption></figure></div>
@@ -704,6 +705,9 @@ $('#printBtn').onclick=()=>{ac();const w=me();$('#printArea').innerHTML=`<h1>Wor
 
 (()=>{const b=$('#reset');let t=null;b.addEventListener('pointerdown',()=>{t=setTimeout(()=>{if(confirm('Reset Helper Town?')){localStorage.removeItem(KEY);location.reload()}},3000)});['pointerup','pointerleave','pointercancel'].forEach(e=>b.addEventListener(e,()=>clearTimeout(t)))})();
 hud();
+const VER='2026-11-16c';
+fetch(location.pathname+'?fresh='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const VER='([^']+)'/);
+ if(m&&m[1]!==VER&&sessionStorage.getItem('htReload')!==m[1]){sessionStorage.setItem('htReload',m[1]);location.replace(location.pathname+'?v='+m[1])}}).catch(()=>{});
 </script>
 </body>
 </html>
