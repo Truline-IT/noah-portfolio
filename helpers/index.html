@@ -258,6 +258,7 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const KEY='helperTown_noah_v1';
 const FRESH=()=>({coins:0,done:[0,0,0,0,0,0,0],w:null,dress:[],l4:[],words:0,sent:[null,null,null],facts:false,mk:0,muted:false});
 let S;try{S=Object.assign(FRESH(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){S=FRESH()}
+if(!S.senseV2){S.senseV2=1;S.crab=[];S.crabDone=false;if(S.done&&S.done[5]){S.done[5]=0;S.done[6]=0;S.facts=false}}
 if(!S.cpAsked2){S.cpAsked2=1;if(S.mode4!=='paper'){S.mode4=null;S.p4=0}try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 
@@ -637,46 +638,128 @@ function details(){const w=me(),M=w.many,m=M.toLowerCase();return [
 let l6cur=null;
 function l6Init(){const D=details();const n=S.sent.findIndex(s=>!s||!s.ok);
  $('#l6done').innerHTML=S.sent.filter(s=>s&&s.ok).map(s=>`<p>✅ ${esc(full(s))}</p>`).join('');
- if(n<0){$('#l6now').innerHTML='';finish(5,'You wrote 3 sentences!');return}
- l6cur={n,st:S.sent[n]?.st||null};drawDetail(D[n]);$('#l6ear').onclick=()=>say(D[n].q);say(D[n].q)}
+ if(n<0){if(!S.crabDone){crabInit();return}$('#l6now').innerHTML='';finish(5,'You wrote 3 sentences!');return}
+ l6cur={n,st:S.sent[n]?.st||null};drawDetail(D[n]);$('#l6ear').onclick=()=>say(D[n].q);
+ const old=S.sent[n];const pr=old&&old.st&&old.tx?problem(old,n):null;
+ if(pr){const m=$('#msg');if(m){m.className='msg bad';m.textContent='Fix this sentence: '+pr.t}say('Let\'s fix this sentence. '+(pr.s||pr.t))}else say(D[n].q)}
 const full=s=>(s.st+' '+s.tx).replace(/\s+/g,' ').trim();
+function bankList(){const w=me();return [...w.words.map(x=>x[0]),w.tools[0].n,w.tools[1].n,w.hat.n,w.clothes.n].filter((v,i,a)=>a.indexOf(v)===i)}
+function chipsHTML(){return `<div style="font-size:18px;font-weight:700;margin-top:10px">🧰 Word tools (tap to add):</div><div class="chips">${bankList().map(x=>`<button class="chip">${esc(x)}</button>`).join('')}</div>`}
+function wireChips(getBox){document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ac();sfx('pop');const tx=getBox();if(!tx)return;const v=tx.value,pos=tx.selectionStart??v.length;const before=v.slice(0,pos),after=v.slice(pos);
+  const add=(before&&!/\s$/.test(before)?' ':'')+c.textContent+(after&&!/^\s/.test(after)?' ':'');tx.value=before+add+after;const np=(before+add).length;tx.dispatchEvent(new Event('input'));tx.focus();tx.setSelectionRange(np,np);say(c.textContent)})}
+function growBox(tx){const g=()=>{tx.style.height='auto';tx.style.height=tx.scrollHeight+6+'px'};tx.addEventListener('input',g);g()}
 function drawDetail(d){const w=me(),n=l6cur.n;
  $('#l6now').innerHTML=`<div class="detail"><h3><span style="font-size:44px">${d.ic}</span>${d.h}<button class="ear" data-say="${esc(d.q)}">👂</button></h3>
   ${l6cur.st?'':`<div style="font-size:22px;font-weight:600">Tap how you want to start:</div><div class="starters">${d.st.map((s,i)=>`<button class="starter" data-i="${i}">${esc(s)} ...</button>`).join('')}</div>`}
   ${l6cur.st?`<div class="line"><span class="st">${esc(l6cur.st)}</span><textarea id="tx" rows="2" autocomplete="off" autocapitalize="off" spellcheck="true" placeholder="type the rest...">${esc(S.sent[n]?.tx||'')}</textarea></div>
-  <div style="font-size:18px;font-weight:700;margin-top:10px">🧰 Word tools (tap to add):</div><div class="chips">${[...w.words.map(x=>x[0]),w.tools[0].n,w.tools[1].n,w.hat.n,w.clothes.n].filter((v,i,a)=>a.indexOf(v)===i).map(x=>`<button class="chip">${esc(x)}</button>`).join('')}</div>
-  <div class="msg" id="msg"></div>
-  <button class="big blue" id="newStart">↩ NEW START</button><button class="big green" id="checkBtn">✔ CHECK IT</button>`:''}</div>`;
+  ${chipsHTML()}
+  <div class="msg" id="msg"></div><div id="listen"></div>
+  <div id="l6btns"><button class="big blue" id="newStart">↩ NEW START</button><button class="big green" id="checkBtn">✔ CHECK IT</button></div>`:''}</div>`;
  if(!l6cur.st){document.querySelectorAll('.starter').forEach(b=>b.onclick=()=>{ac();const i=+b.dataset.i;
   if(d.wrongIdx===i){sfx('boing');b.classList.remove('wig');void b.offsetWidth;b.classList.add('wig');say(d.wrongSay);return}
   sfx('pop');l6cur.st=d.st[i];drawDetail(d);say(`${d.st[i]}. Now you type the rest!`);setTimeout(()=>$('#tx')?.focus(),200)});return}
- const tx=$('#tx');
- document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ac();sfx('pop');const v=tx.value,pos=tx.selectionStart??v.length;const before=v.slice(0,pos),after=v.slice(pos);
-  const add=(before&&!/\s$/.test(before)?' ':'')+c.textContent+(after&&!/^\s/.test(after)?' ':'');tx.value=before+add+after;const np=(before+add).length;tx.dispatchEvent(new Event('input'));tx.focus();tx.setSelectionRange(np,np);say(c.textContent)});
+ const tx=$('#tx');wireChips(()=>tx);growBox(tx);
+ tx.addEventListener('input',()=>{$('#listen').innerHTML='';$('#l6btns').style.display=''});
  $('#newStart').onclick=()=>{ac();l6cur.st=null;S.sent[n]=null;save();drawDetail(d)};
  $('#checkBtn').onclick=()=>{ac();const s={st:l6cur.st,tx:tx.value.trim()};S.sent[n]=s;save();const p=problem(s,n);const m=$('#msg');
   if(p){sfx('boing');m.className='msg bad';m.textContent=p.t;say(p.s||p.t);
    if(p.soft){m.insertAdjacentHTML('beforeend',' <button class="big gold" id="okSpell" style="min-height:56px;font-size:20px;padding:4px 14px">My spelling is right</button>');
     $('#okSpell').onclick=()=>{S.okWords=[...(S.okWords||[]),p.soft];save();$('#checkBtn').click()}}
    return}
-  s.ok=true;S.sent[n]=s;save();m.className='msg ok';m.textContent='Great sentence!';const r=$('#checkBtn').getBoundingClientRect();addCoins(5,r.x+r.width/2,r.y);say(full(s)+'. Great sentence!');later(l6Init,3200)};
- const grow=()=>{tx.style.height='auto';tx.style.height=tx.scrollHeight+6+'px'};tx.addEventListener('input',grow);grow();
+  /* passed the checks: now listen and decide if it makes sense */
+  m.className='msg';m.textContent='';$('#l6btns').style.display='none';
+  $('#listen').innerHTML=`<div class="panel" style="background:#fffbe9;border:4px dashed #ffc94a;box-shadow:none"><div style="font-size:clamp(20px,4.2vw,28px);font-weight:700">👂 Listen. Does it make sense?</div>
+   <p style="font-size:clamp(20px,4.2vw,28px);margin:8px 0">"${esc(full(s))}"</p><div style="font-size:18px;font-weight:600;opacity:.8">Read it with Mom or Dad.</div>
+   <button class="big purple" id="hearIt">🔊 HEAR IT</button><br><button class="big pink" id="fixIt">✏️ FIX IT</button><button class="big green" id="yesIt">👍 IT MAKES SENSE!</button></div>`;
+  const read=()=>say(`${full(s)} ... Does it make sense?`);read();$('#hearIt').onclick=()=>{ac();read()};
+  $('#fixIt').onclick=()=>{ac();$('#listen').innerHTML='';$('#l6btns').style.display='';tx.focus();say('OK! Fix your words, then tap check it.')};
+  $('#yesIt').onclick=()=>{ac();s.ok=true;S.sent[n]=s;save();const r=$('#yesIt').getBoundingClientRect();addCoins(5,r.x+r.width/2,r.y);say('Great sentence!');later(l6Init,1600)}};
  tx.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#checkBtn').click()}})}
 /* spelling help: only flags near-misses of words he is likely to use */
 const COMMON='people community because help helps they them their there when with when what make makes give gives keep keeps safe sick fires fire trucks truck house houses home homes food town city kids children school clean work works and the have every day night water hose put out take bring brings drive drives friend friends important need needs everyone hose hoses boots helmet helmets coat coats wear wears uses save saves water truck rescue rescues sirens animals cats trees store money buy sell sells bakes grows cooks letters drives hospital patients nurses'.split(' ');
 function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]}
 function dict(){const w=me();const set=new Set(COMMON);[...w.words.map(x=>x[0]),w.tools[0].n,w.tools[1].n,w.hat.n,w.clothes.n,w.one,w.many].forEach(p=>p.toLowerCase().split(/\s+/).forEach(x=>set.add(x)));[...set].forEach(x=>{set.add(x+'s');set.add(x+'es')});return set}
-function problem(s,n){const tx=s.tx,f=full(s);
- const words=tx.replace(/[.!?,]/g,' ').trim().split(/\s+/).filter(Boolean);
+const words_=tx=>tx.replace(/[.!?,]/g,' ').trim().split(/\s+/).filter(Boolean);
+/* 1. big letters, periods, spaces */
+function mechIssue(s){const tx=s.tx,words=words_(tx);
  if(words.length<3)return {t:'Tell me more! Add a few more words.',s:'Tell me more! Add a few more words about it.'};
  if(/ {2,}/.test(tx))return {t:'Oops, two spaces. Use one finger space.'};
  const lead=me().many.toLowerCase();if(tx.toLowerCase().startsWith(lead)||tx.toLowerCase().startsWith(me().one))return {t:`You already said "${me().many}" at the start! Just tell what they do.`,s:`You already said ${me().many} at the start. Just tell what they do. Read it out loud and see.`};
  if(/\bi\b/.test(tx))return {t:'The word I is always a big letter.'};
+ if(/(^|\s)[A-Z][a-z]/.test(tx.replace(/^(I|I'm)\b/,''))&&!/\b(I|Mom|Dad|Noah)\b/.test(tx))return {t:'No big letters in the middle of a sentence.',s:'No big letters in the middle of a sentence. Only at the start.'};
  if(!/[.!]$/.test(tx))return {t:'Put a period at the end. ( . )',s:'Put a period at the end of your sentence.'};
- const D=dict(),okW=S.okWords||[];for(const raw of words){const x=raw.toLowerCase();if(x.length<5||D.has(x)||okW.includes(x))continue;
-  for(const d of D){if(d[0]===x[0]&&Math.abs(d.length-x.length)<=2&&lev(x,d)<=(x.length>=8?2:1))return {soft:x,t:`Check the spelling of "${raw}". Did you mean "${d}"?`,s:`Check the spelling of ${raw}. Did you mean ${d}? ${d.split('').join(', ')}.`}}}
- for(let k=0;k<3;k++){if(k!==n&&S.sent[k]&&S.sent[k].ok&&S.sent[k].tx.toLowerCase()===tx.toLowerCase())return {t:'You already said that! Tell me something new.'}}
  return null}
+/* 2. does it make sense? catches word lists and starters that do not fit */
+const GLUE=new Set('a an the and or but to with in on of for at by from they them their it its us we our you your people person kids children everyone someone somebody he she his her who that this these those is are was were be been can will would could should so if not no all some many very too there then when where what because like has have had do does did get gets just also more lots lot'.split(' '));
+const VERBS=new Set('help helps keep keeps stop stops catch catches protect protects save saves rescue rescues put puts drive drives bring brings take takes give gives make makes build builds fix fixes find finds talk talks look looks care cares check checks clean cleans pick picks deliver delivers bake bakes grow grows plant plants cook cooks sell sells carry carries fight fights go goes come comes work works teach teaches watch watches answer answers chase chases arrest arrests write writes use uses wear wears run runs climb climbs spray sprays recycle recycles harvest harvests feed feeds milk heal heals is are can will'.split(' '));
+function units(tx){const toks=tx.toLowerCase().replace(/[.!?]/g,' ').replace(/,/g,' , ').split(/\s+/).filter(Boolean);
+ const bank=bankList().map(b=>b.toLowerCase().split(' ')).sort((a,b)=>b.length-a.length);const out=[];
+ for(let i=0;i<toks.length;){let hit=null;for(const b of bank){const seg=toks.slice(i,i+b.length);if(seg.length===b.length&&seg.every((t,k)=>t===b[k]||(k===b.length-1&&(t===b[k]+'s'||t===b[k]+'es')))){hit=b;break}}
+  if(hit){out.push({bank:true,t:hit.join(' ')});i+=hit.length}else{out.push({bank:false,t:toks[i]});i++}}
+ return out}
+const isPersonWord=t=>{const w=me();return [w.one,w.many.toLowerCase(),'police','officers','officer','people','kids','firefighters','doctors','bakers','farmers'].some(x=>t.startsWith(x))};
+function senseIssue(s){const w=me(),st=s.st.toLowerCase().trim(),U=units(s.tx),toks=U.filter(u=>u.t!==',');if(!toks.length)return null;
+ const ADJ=new Set(['safe','clean','healthy','sick','brave']);
+ for(let i=0;i<U.length-1;i++){if(U[i].bank&&U[i+1].bank&&!VERBS.has(U[i].t)&&!ADJ.has(U[i+1].t)){const pair=`${U[i].t} ${U[i+1].t}`;
+  return {t:`"${pair}" sounds like a list of words. Add little words like and, the, a, to, with.`,s:`${pair}. That sounds like a list of words. Add little words, like and, the, a, to, or with. Then read it out loud.`}}}
+ const glue=toks.filter(u=>!u.bank&&GLUE.has(u.t)).length,bankN=toks.filter(u=>u.bank).length;
+ if(bankN>=2&&glue===0)return {t:'It needs little words like and, the, a, to, so it makes sense.',s:'Add little words, like and, the, a, or to, so your sentence makes sense.'};
+ const first=toks[0],last=toks[toks.length-1];
+ if(!last.bank&&['and','the','a','an','to','with','of','for','because','when','or','but'].includes(last.t))return {t:'Your sentence stops too soon. Finish your idea.',s:'Your sentence stops too soon. Finish your idea.'};
+ if(/when they$/.test(st)&&first.bank&&!VERBS.has(first.t.split(' ')[0]))return {t:`What do they DO? Start with an action word like help, keep, stop, or catch.`,s:'What do they do? Start with an action word, like help, keep, stop, or catch.'};
+ if(/ by$/.test(st)&&!/ing$/.test(first.t))return {t:'After "by", use an -ing word. Like: by helping, by keeping.',s:'After the word by, use an i n g word. Like, by helping, or by keeping.'};
+ if(/(because| when)$/.test(st)&&!/when they$/.test(st)){const f=first.t;if((first.bank&&!isPersonWord(f))||VERBS.has(f))return {t:`After "${st.split(' ').pop()}", tell WHO. Try: they, people, or kids.`,s:`After the word ${st.split(' ').pop()}, tell who. Try they, or people, or kids.`}}
+ const isCl=t=>[w.hat.n,w.clothes.n].map(x=>x.toLowerCase()).includes(t),isTool=t=>w.tools.map(x=>x.n.toLowerCase()).includes(t)||['police car','fire truck','garbage truck'].includes(t);
+ if(/ use$/.test(st)&&toks.some(u=>u.bank&&isCl(u.t)))return {t:`Do they USE a ${toks.find(u=>u.bank&&isCl(u.t)).t}, or WEAR it? Tap NEW START and pick "wear", or change the word.`,s:`Do they use a ${toks.find(u=>u.bank&&isCl(u.t)).t}, or wear it? Tap new start and pick wear, or change the word.`};
+ if(/ wear$/.test(st)&&toks.some(u=>u.bank&&isTool(u.t)))return {t:`Do they WEAR a ${toks.find(u=>u.bank&&isTool(u.t)).t}? That is silly! Tap NEW START and pick "use".`,s:`Do they wear a ${toks.find(u=>u.bank&&isTool(u.t)).t}? That is silly! Tap new start and pick use.`};
+ return null}
+/* 3. spelling */
+function spellIssue(s){const D=dict(),okW=S.okWords||[];for(const raw of words_(s.tx)){const x=raw.toLowerCase();if(x.length<5||D.has(x)||okW.includes(x))continue;
+  for(const d of D){if(d[0]===x[0]&&Math.abs(d.length-x.length)<=2&&lev(x,d)<=(x.length>=8?2:1))return {soft:x,t:`Check the spelling of "${raw}". Did you mean "${d}"?`,s:`Check the spelling of ${raw}. Did you mean ${d}? ${d.split('').join(', ')}.`}}}return null}
+/* 4. something new each time */
+function repeatIssue(s,n){const mine=new Set(words_(s.tx.toLowerCase()).filter(x=>!GLUE.has(x)));
+ for(let k=0;k<3;k++){const o=S.sent[k];if(k===n||!o||!o.tx)continue;if(o.tx.toLowerCase()===s.tx.toLowerCase())return {t:'You already said that! Tell me something new.'};
+  const other=new Set(words_(o.tx.toLowerCase()).filter(x=>!GLUE.has(x)));const same=[...mine].filter(x=>other.has(x)).length;
+  if(mine.size>=3&&same/mine.size>=.75&&(n>k||o.ok))return {t:'This sounds a lot like another sentence. Tell something new!'}}return null}
+function problem(s,n){return mechIssue(s)||senseIssue(s)||spellIssue(s)||repeatIssue(s,n)}
+
+/* ---------- Oops Crab: check all 3 sentences, one check at a time ---------- */
+const CRAB=[
+ {id:'mech',e:'🔠',n:'Big letters & periods',say:'Check 1. Big letters and periods! A period at the end, one space between words.',fn:(s)=>mechIssue(s)},
+ {id:'sense',e:'🧩',n:'Makes sense',say:'Check 2. Does it make sense? No lists of words. Use little words like and, the, and to.',fn:(s)=>senseIssue(s)},
+ {id:'spell',e:'🔤',n:'Spelling',say:'Check 3. Spelling! Look at each word.',fn:(s)=>spellIssue(s)},
+ {id:'new',e:'🔁',n:'Something new',say:'Check 4. Something new! Each sentence tells a different detail.',fn:(s,n)=>repeatIssue(s,n)},
+ {id:'words',e:'🧰',n:'Job words',say:'Check 5. Job words! Use 2 or more job words, like your word tools.',all:()=>vocabUsed().length>=2?null:{t:'Use 2 or more job words. Tap a word tool to add one to a sentence.'}},
+ {id:'listen',e:'👂',n:'Listen',say:'Check 6. Listen to all 3 sentences. Do they make sense? Read them with Mom or Dad. If they sound right, hit the crab!',listen:true}];
+let crabFocus=0,crabHeard=false;
+function crabIssues(c){if(c.all){const r=c.all();return r?[{n:-1,...r}]:[]}if(!c.fn)return [];return S.sent.map((s,n)=>{const r=s&&c.fn(s,n);return r?{n,...r}:null}).filter(Boolean)}
+function crabInit(){S.crab=S.crab||[];const ci=CRAB.findIndex(c=>!S.crab.includes(c.id));
+ $('#l6done').innerHTML='';
+ if(ci<0){const bad=CRAB.findIndex(c=>crabIssues(c).length);if(bad>=0){S.crab=S.crab.filter(id=>CRAB.findIndex(c=>c.id===id)<bad);save();crabInit();return}
+  S.crabDone=true;save();$('#l6now').innerHTML=`<div class="panel"><div style="font-size:120px;animation:wig 1s 2">🦀💫</div><h2>You beat the Oops Crab!</h2></div>`;sfx('yay');say('You beat the Oops Crab! Your sentences are all checked!');later(()=>finish(5,'You beat the Oops Crab!'),2200);return}
+ const c=CRAB[ci];crabHeard=false;
+ $('#l6now').innerHTML=`<div class="panel" style="display:flex;align-items:center;gap:14px;justify-content:center;flex-wrap:wrap">
+   <div id="crab" style="font-size:110px;line-height:1;animation:wig 1.2s infinite">🦀</div>
+   <div style="text-align:left;flex:1;min-width:220px"><div style="font-size:clamp(22px,4.4vw,30px);font-weight:700">Oops Crab hid mistakes in your sentences!</div>
+   <div style="font-size:30px;margin-top:6px">${CRAB.map((x,i)=>i<ci?'💔':'❤️').join('')}</div></div></div>
+  <div class="detail"><h3><span style="font-size:44px">${c.e}</span>${c.n}<button class="ear" id="crabEar">👂</button></h3>
+   <div id="crabSents"></div>${c.listen?'<button class="big purple" id="crabRead">🔊 READ MY SENTENCES</button>':''}${chipsHTML()}
+   <div class="msg" id="crabMsg"></div>
+   <div style="text-align:center"><button class="big pink huge pulse" id="hitCrab">HIT THE CRAB! 👊</button></div></div>`;
+ $('#crabEar').onclick=()=>say(c.say);
+ crabDraw(c,false);say(c.say+(crabIssues(c).length?' The crab is hiding in the yellow spot. Fix it!':' Looks good? Hit the crab!'));
+ if(c.listen)$('#crabRead').onclick=()=>{ac();crabHeard=true;say(S.sent.map(full).join(' ... '))};
+ wireChips(()=>document.querySelectorAll('.crabTx')[crabFocus]);
+ $('#hitCrab').onclick=()=>{ac();const iss=crabIssues(c);
+  if(iss.length){sfx('boing');crabDraw(c,true);const m=$('#crabMsg');m.className='msg bad';m.textContent=iss[0].t;say((iss[0].n>=0?`Sentence ${iss[0].n+1}. `:'')+(iss[0].s||iss[0].t));return}
+  if(c.listen&&!crabHeard){say('First tap Read my sentences, and listen!');return}
+  S.crab.push(c.id);save();sfx('pop');const cr=$('#crab');const r=cr.getBoundingClientRect();burst(r.x+r.width/2,r.y+r.height/2,['💥','⭐','✨'],14);addCoins(5,r.x+r.width/2,r.y);
+  say(['Bonk!','Pow!','Got it!','Boom!','Whack!','Yes!'][ci]+' '+c.n+' is all good!');later(crabInit,1500)}}
+function crabDraw(c,mark){const iss=crabIssues(c);
+ $('#crabSents').innerHTML=S.sent.map((s,n)=>{const bad=mark&&iss.some(x=>x.n===n);return `<div class="line" style="margin:10px 0;${bad?'background:#fff3a6;border-color:#ff9f1a;border-style:solid':''}"><span class="st">${n+1}. ${esc(s.st)}</span><textarea class="crabTx" data-n="${n}" rows="2" autocomplete="off" autocapitalize="off" spellcheck="true">${esc(s.tx)}</textarea>${bad?`<div style="flex-basis:100%;font-size:18px;font-weight:700;color:#b34700">🦀 ${esc(iss.find(x=>x.n===n).t)}</div>`:''}</div>`}).join('');
+ document.querySelectorAll('.crabTx').forEach(t=>{growBox(t);t.addEventListener('focus',()=>crabFocus=+t.dataset.n);
+  t.addEventListener('input',()=>{const n=+t.dataset.n;S.sent[n].tx=t.value.replace(/\s*\n\s*/g,' ').trim();save();crabHeard=false});
+  t.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#hitCrab').click()}})})}
 
 /* ---------- L7: puppet show, rubric checklist, send ---------- */
 function vocabUsed(){const w=me();const bank=[...w.words.map(x=>x[0]),w.tools[0].n,w.tools[1].n,w.hat.n,w.clothes.n];const txt=S.sent.filter(Boolean).map(full).join(' ').toLowerCase();return bank.filter((b,i,a)=>a.indexOf(b)===i&&txt.includes(b.toLowerCase()))}
@@ -716,7 +799,7 @@ $('#printBtn').onclick=()=>{ac();const w=me();$('#printArea').innerHTML=`<h1>Wor
   if(k==='close')m.classList.remove('on');else if(k==='new')fresh();else if(k==='reset')ask();else if(k==='main')main();
   else if(k==='yes'){try{localStorage.removeItem(KEY)}catch(_){}fresh()}else if(window.grownExtra){m.classList.remove('on');window.grownExtra(k)}})})();
 hud();
-const VER='2026-11-16e';window.GAMEVER=VER;
+const VER='2026-11-16f';window.GAMEVER=VER;
 $('#verTag').textContent='Version '+VER;
 window.grownExtraHTML='<button class="a" data-g="helper">🧑‍🚒 Change his helper</button>';
 window.grownExtra=k=>{if(k==='helper')show('l2')};
