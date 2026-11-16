@@ -38,21 +38,24 @@ button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
 .ttl{font-size:clamp(50px,11vw,100px);font-weight:700;line-height:.95;color:#fff;text-shadow:0 6px 0 #e07a00,0 12px 0 #9a4f00,0 18px 26px rgba(0,0,0,.25);animation:bob 3s ease-in-out infinite}
 .panel{background:#fff;border-radius:34px;padding:18px;box-shadow:0 10px 0 #b9dca8;margin:12px 0}
 .photo{width:100%;max-width:460px;border-radius:24px;border:6px solid #fff;box-shadow:0 8px 0 #b9dca8}
-/* town map */
-#town{position:relative;height:min(66vh,580px);border-radius:40px;background:#8fd46f;border:6px solid #fff;overflow:hidden;box-shadow:0 12px 0 #4f9a3a}
-#town .road{position:absolute;background:#9a9a9a;border:4px dashed rgba(255,255,255,.0)}
-#town .road.h{height:44px;left:0;right:0;transform:translateY(-50%);background:linear-gradient(#8d8d8d,#8d8d8d) ,#8d8d8d;box-shadow:inset 0 0 0 3px #7a7a7a}
-#town .road.h::after{content:'';position:absolute;left:0;right:0;top:50%;border-top:5px dashed #fff;transform:translateY(-50%)}
-#town .road.v{width:44px;top:0;bottom:0;transform:translateX(-50%);background:#8d8d8d}
-#town .road.v::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:5px dashed #fff;transform:translateX(-50%)}
-.lot{position:absolute;transform:translate(-50%,-50%);width:clamp(96px,17vw,150px);aspect-ratio:1;border-radius:30px;background:linear-gradient(#fffbe9,#ffe9a8);border:5px solid #fff;box-shadow:0 10px 0 #c98f1f;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:clamp(14px,2.4vw,19px);line-height:1.05;z-index:2;padding:4px}
-.lot .i{font-size:clamp(40px,7vw,62px);line-height:1.1}
-.lot.lock{filter:grayscale(1);opacity:.7}
-.lot.cur{box-shadow:0 10px 0 #c98f1f,0 0 0 8px rgba(255,255,255,.7),0 0 40px 14px #fff59d;animation:pulse 1.4s infinite}
-.lot .flag{position:absolute;top:-28px;right:-8px;font-size:42px}
-#mayor{position:absolute;font-size:clamp(56px,9vw,84px);transform:translate(-50%,-110%);transition:left 1s cubic-bezier(.5,-.4,.5,1.4),top 1s cubic-bezier(.5,-.4,.5,1.4);z-index:4;pointer-events:none}
-.deco{position:absolute;transform:translate(-50%,-50%) scale(0);font-size:clamp(32px,6vw,54px);z-index:3;pointer-events:none;filter:drop-shadow(0 4px 0 rgba(0,0,0,.18));transition:transform .7s cubic-bezier(.5,-.6,.5,1.8)}
-.deco.on{transform:translate(-50%,-50%) scale(1)}
+/* town map: numbered grid that fits every screen */
+#town{border-radius:40px;background:#8fd46f;border:6px solid #fff;box-shadow:0 12px 0 #4f9a3a;padding:22px 14px 14px;max-width:min(680px,max(330px,82vh));margin:0 auto}
+.lots{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 14px}
+.lot{position:relative;aspect-ratio:1;border-radius:28px;background:linear-gradient(#fffbe9,#ffe9a8);border:5px solid #fff;box-shadow:0 8px 0 #c98f1f;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:clamp(14px,3.4vw,21px);line-height:1.1;padding:6px;color:var(--ink)}
+.lot .i{font-size:clamp(38px,10vw,68px);line-height:1.15}
+.lot .num{position:absolute;top:-12px;left:-12px;width:40px;height:40px;border-radius:50%;background:#8e5cff;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.lot.done .num{background:#2ecc71}
+.lot.lock{background:#eef3ea;box-shadow:0 8px 0 #a9bd99;color:#7d8a72}.lot.lock .i{opacity:.6}
+.lot.cur{box-shadow:0 8px 0 #c98f1f,0 0 0 7px rgba(255,255,255,.8),0 0 34px 12px #fff59d;animation:pulse 1.4s infinite;z-index:2}
+.lot .flag{position:absolute;top:-16px;right:-10px;font-size:36px}
+.lot .bear{position:absolute;top:-22px;right:-14px;font-size:clamp(34px,7vw,48px);animation:bob 1.6s ease-in-out infinite}
+.lot .go{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);background:#ff4f8b;color:#fff;font-size:15px;padding:2px 12px;border-radius:12px;border:3px solid #fff;white-space:nowrap}
+.lot.final{grid-column:1/-1;aspect-ratio:auto;flex-direction:row;gap:14px;min-height:110px;font-size:clamp(20px,4.4vw,28px)}
+.street{position:relative;margin-top:22px;background:#8d8d8d;border-radius:22px;padding:10px 6px;display:flex;justify-content:space-around;flex-wrap:wrap;gap:4px;border:4px solid #fff}
+.street::before{content:'';position:absolute;left:14px;right:14px;top:50%;border-top:5px dashed #fff;opacity:.8}
+.deco{position:relative;font-size:clamp(30px,7.5vw,48px);filter:grayscale(1);opacity:.35;transform:scale(.8);transition:transform .6s cubic-bezier(.5,-.6,.5,1.8),opacity .6s,filter .6s}
+.deco.on{filter:none;opacity:1;transform:scale(1)}
+.deco.next{opacity:.7;filter:grayscale(.3);animation:pulse 1.2s infinite}
 #mk{margin-top:16px;background:#fff;border-radius:28px;padding:14px 16px;box-shadow:0 8px 0 #b9dca8;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
 #mk .ic{font-size:56px}#mk .tx{font-size:clamp(20px,4.4vw,28px);font-weight:700;text-align:left;flex:1;min-width:180px}
 #mk .cost{font-size:.8em;color:#b07a00}
@@ -377,27 +380,25 @@ const MK=[
  {ic:'⛲',n:'Build a fountain',cost:25,x:6,y:48,line:'A fountain in the town square! So pretty!'},
  {ic:'🎡',n:'Build a fair',cost:30,x:94,y:48,line:'A fair for the whole town! Helper Town is all done!'}];
 function mapInit(){hud();const cur=S.done.indexOf(0);const t=$('#town');
- t.innerHTML=`<div class="road h" style="top:48%"></div><div class="road v" style="left:50%"></div>`+
-  LOTS.map((l,i)=>`<button class="lot ${open(i)?'':'lock'} ${i===cur?'cur':''}" data-i="${i}" style="left:${l.x}%;top:${l.y}%"><span class="i">${S.done[i]?l.b:open(i)?(i===cur?'🏗️':l.i):'🚧'}</span>${l.n}${S.done[i]?'<span class="flag">⭐</span>':''}</button>`).join('')+
-  MK.map((m,i)=>`<div class="deco ${i<S.mk?'on':''}" id="d${i}" style="left:${m.x}%;top:${m.y}%">${m.ic}</div>`).join('')+
-  `<div id="mayor" style="left:${LOTS[cur<0?6:cur].x}%;top:${LOTS[cur<0?6:cur].y}%">🐻</div>`;
- t.querySelectorAll('.lot').forEach(b=>b.onclick=()=>{ac();const i=+b.dataset.i;if(!open(i)){sfx('boing');b.classList.add('wig');setTimeout(()=>b.classList.remove('wig'),900);say('That lot is not ready yet. Build the glowing lot first!');return}
+ t.innerHTML=`<div class="lots">${LOTS.map((l,i)=>`<button class="lot ${open(i)?'':'lock'} ${S.done[i]?'done':''} ${i===cur?'cur':''} ${i===6?'final':''}" data-i="${i}"><span class="num">${i+1}</span><span class="i">${S.done[i]?l.b:open(i)?(i===cur?'🏗️':l.i):'🚧'}</span><span>${l.n}</span>${S.done[i]?'<span class="flag">⭐</span>':''}${i===cur?'<span class="bear">🐻</span>':''}</button>`).join('')}</div>
+  <div class="street">${MK.map((m,i)=>`<div class="deco ${i<S.mk?'on':''} ${i===S.mk?'next':''}" id="d${i}">${m.ic}</div>`).join('')}</div>`;
+ t.querySelectorAll('.lot').forEach(b=>b.onclick=()=>{ac();const i=+b.dataset.i;if(!open(i)){sfx('boing');b.classList.add('wig');setTimeout(()=>b.classList.remove('wig'),900);say(`That one is locked. Finish number ${cur+1} first, ${LOTS[cur].n}!`);return}
   if(i>=2&&!S.w){say('First, pick a helper!');show('l2');return}
-  sfx('pop');const m=$('#mayor');m.style.left=LOTS[i].x+'%';m.style.top=LOTS[i].y+'%';setTimeout(()=>show('l'+(i+1)),900)});
+  sfx('pop');burst(b.getBoundingClientRect().x+b.offsetWidth/2,b.getBoundingClientRect().y+b.offsetHeight/2,['✨','🔨','⭐'],8);setTimeout(()=>show('l'+(i+1)),450)});
  const k=mkDraw();
  let line;
  if(k&&k.can)line=`You have ${S.coins} coins! Tap BUY IT to ${k.m.n.toLowerCase()}!`;
- else if(cur<0)line='The whole town is built! Tap the Puppet Show to send your work to your teacher.';
- else if(cur===0&&S.coins===0)line='Our town needs helpers! Tap the glowing lot to start building.';
- else line=`Tap the glowing lot to build ${LOTS[cur].n}!`;
- $('#mapAsk').textContent=cur<0?'Town built! 🎉':'Tap the glowing lot!';$('#mapEar').onclick=()=>say(line);later(()=>say(line),300)}
+ else if(cur<0)line='The whole town is built! Tap number 7, the Puppet Show, to send your work to your teacher.';
+ else if(cur===0&&S.coins===0)line='Our town needs helpers! Tap number 1, the glowing lot, to start building.';
+ else line=`Tap number ${cur+1}, ${LOTS[cur].n}!`;
+ $('#mapAsk').textContent=cur<0?'Town built! 🎉':`Tap number ${cur+1}!`;$('#mapEar').onclick=()=>say(line);later(()=>say(line),300)}
 function mkDraw(){const f=S.mk/MK.length;$('#mkBar i').style.width=f*100+'%';const m=MK[S.mk],box=$('#mk');
  if(!m){box.innerHTML='<span class="ic">🏆</span><span class="tx">Helper Town is all fixed up!</span>';return null}
  const can=S.coins>=m.cost;
  box.innerHTML=`<span class="ic">${m.ic}</span><span class="tx">${m.n}<br><span class="cost">Costs 🪙 ${m.cost}</span></span><button class="ear" data-say="${m.n}. It costs ${m.cost} coins.">👂</button>${can?'<button class="big gold pulse" id="mkGo" style="margin:0">BUY IT!</button>':''}`;
  if(can)$('#mkGo').onclick=mkDo;return {m,can}}
 function mkDo(){const m=MK[S.mk];if(!m||S.coins<m.cost)return;ac();S.coins-=m.cost;S.mk++;save();hud();sfx('honk');
- const d=$('#d'+(S.mk-1));d.classList.add('on');mkDraw();const r=d.getBoundingClientRect();burst(r.x+r.width/2,r.y+r.height/2,['✨','🌟','🪙'],16);say(m.line);
+ const d=$('#d'+(S.mk-1));d.classList.remove('next');d.classList.add('on');const nx=$('#d'+S.mk);if(nx)nx.classList.add('next');mkDraw();const r=d.getBoundingClientRect();burst(r.x+r.width/2,r.y+r.height/2,['✨','🌟','🪙'],16);say(m.line);
  if(S.mk>=MK.length)later(()=>showOv('🏙️','Helper Town is done!','Hooray! You built the whole town!',()=>show('map')),3000)}
 
 /* ---------- L1: goods or services sort ---------- */
@@ -705,7 +706,7 @@ $('#printBtn').onclick=()=>{ac();const w=me();$('#printArea').innerHTML=`<h1>Wor
 
 (()=>{const b=$('#reset');let t=null;b.addEventListener('pointerdown',()=>{t=setTimeout(()=>{if(confirm('Reset Helper Town?')){localStorage.removeItem(KEY);location.reload()}},3000)});['pointerup','pointerleave','pointercancel'].forEach(e=>b.addEventListener(e,()=>clearTimeout(t)))})();
 hud();
-const VER='2026-11-16c';
+const VER='2026-11-16d';
 fetch(location.pathname+'?fresh='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const VER='([^']+)'/);
  if(m&&m[1]!==VER&&sessionStorage.getItem('htReload')!==m[1]){sessionStorage.setItem('htReload',m[1]);location.replace(location.pathname+'?v='+m[1])}}).catch(()=>{});
 </script>
