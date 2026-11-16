@@ -104,7 +104,7 @@ button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
 <body>
 <canvas id="conf"></canvas>
 <div id="hud" style="display:none"><button class="round" id="mapBtn">🗺️</button><div class="coins" id="coins">🪙 <span id="cn">0</span></div><button class="round" id="muteBtn">🔊</button></div>
-<button id="reset" aria-label="Grown-up: hold 3 seconds to reset">⚙️</button>
+<button id="reset" aria-label="Grown-ups menu">⚙️</button>
 
 <section class="screen on" id="title"><div class="wrap">
   <div class="ttl">HOP'S<br>SH<b>O</b>RT <b>O</b><br>P<b>O</b>ND</div>
@@ -295,7 +295,16 @@ function l5Init(){const intro=[{e:'➕',t:'In Canva, add a <b>new page</b> (the 
  const words=DW.map(w=>({e:SHORTO.find(x=>x.w===w).e,t:`<span style="font-size:1.6em;letter-spacing:3px">${w.replace('o','<span class="oo">o</span>')}</span><br>Write it. Color the <b class="oo">o</b> orange! Say a sentence with <b>${w}</b>.`,s:`Write the word ${w}. ${w.split('').join(', ')}. Color the o orange! Then say your own sentence with ${w}, and write it.`}));
  $('#l5body').innerHTML='<div id="steps5"></div>';stepList('steps5',[...intro,...words],'l5',()=>finish(4,'You wrote all the short o words!'))}
 
-(()=>{const b=$('#reset');let t=null;b.addEventListener('pointerdown',()=>{t=setTimeout(()=>{if(confirm('Reset this game?')){localStorage.removeItem(KEY);location.reload()}},3000)});['pointerup','pointerleave','pointercancel'].forEach(e=>b.addEventListener(e,()=>clearTimeout(t)))})();
+(()=>{const NAME="Hop's Short O Pond",b=document.getElementById('reset');if(!b)return;b.setAttribute('aria-label','Grown-ups menu');b.title='Grown-ups';
+ const st=document.createElement('style');st.textContent="#reset{width:56px!important;height:56px!important;font-size:28px!important;background:rgba(255,255,255,.85)!important;box-shadow:0 4px 0 rgba(0,0,0,.15)}#gm{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:16px}#gm.on{display:flex}#gm .gb{background:#fff;border-radius:30px;padding:22px;max-width:460px;width:100%;text-align:center;color:#222;box-shadow:0 10px 0 rgba(0,0,0,.2);max-height:92vh;overflow:auto}#gm h2{margin:0 0 6px;font-size:30px}#gm p{font-size:19px;margin:6px 0 14px;line-height:1.35}#gm button{display:block;width:100%;margin:10px 0;padding:16px;border-radius:20px;font-family:inherit;font-size:22px;font-weight:700;border:4px solid #fff;box-shadow:0 5px 0 rgba(0,0,0,.18);cursor:pointer}#gm .a{background:#2a9df4;color:#fff}#gm .r{background:#ff5a4f;color:#fff}#gm .c{background:#eee;color:#333}#gm small{color:#777;font-size:15px}";document.head.appendChild(st);
+ const m=document.createElement('div');m.id='gm';document.body.appendChild(m);
+ const fresh=()=>{try{sessionStorage.clear()}catch(_){}location.replace(location.pathname+'?v='+Date.now())};
+ const main=()=>{m.innerHTML='<div class="gb"><h2>⚙️ Grown-ups</h2><p>'+NAME+'</p>'+(window.grownExtraHTML||'')+'<button class="a" data-g="new">🔄 Get the newest version</button><button class="r" data-g="reset">🗑️ Start over (erase progress)</button><button class="c" data-g="close">✖ Close</button><small>Version: '+(window.GAMEVER||document.lastModified)+'</small></div>'};
+ const ask=()=>{m.innerHTML='<div class="gb"><h2>Start over?</h2><p>This erases all coins and progress in '+NAME+'. It cannot be undone.</p><button class="r" data-g="yes">Yes, start over</button><button class="c" data-g="main">No, go back</button></div>'};
+ b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();main();m.classList.add('on')});
+ m.addEventListener('click',e=>{const g=e.target.closest('[data-g]');if(!g){if(e.target===m)m.classList.remove('on');return}const k=g.dataset.g;
+  if(k==='close')m.classList.remove('on');else if(k==='new')fresh();else if(k==='reset')ask();else if(k==='main')main();
+  else if(k==='yes'){try{localStorage.removeItem(KEY)}catch(_){}fresh()}else if(window.grownExtra){m.classList.remove('on');window.grownExtra(k)}})})();
 hud();
 </script>
 </body>

@@ -55,5 +55,6 @@ h1{animation:none}
 for(let i=0;i<18;i++){const b=document.createElement('div');b.className='b';const s=8+Math.random()*24;
  Object.assign(b.style,{width:s+'px',height:s+'px',left:Math.random()*100+'%',animationDuration:(8+Math.random()*8)+'s',animationDelay:(-Math.random()*12)+'s'});document.body.appendChild(b)}
 </script>
+<script>/* fresh-links: open each game without an old saved copy */document.querySelectorAll('a.card').forEach(a=>a.addEventListener('click',()=>{a.href=a.getAttribute('href').split('?')[0]+'?v='+Date.now()}));</script>
 </body>
 </html>
