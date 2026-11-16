@@ -99,6 +99,19 @@ button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
 .pics figure{margin:0;background:#fff;border-radius:24px;padding:8px;box-shadow:0 8px 0 #b9dca8;width:min(260px,44vw)}
 .pics img{width:100%;border-radius:18px;display:block}
 .pics figcaption{font-weight:700;font-size:18px;margin-top:6px}
+/* L4 how-to cards */
+.how{background:#fff;border-radius:34px;padding:16px;box-shadow:0 10px 0 #b9dca8;margin:8px auto;max-width:640px}
+.how .ill{background:#fffbe9;border-radius:26px;border:4px dashed #ffd84a;padding:10px;display:flex;justify-content:center}
+.how .ill svg{width:min(330px,74vw);height:auto;max-height:38vh}
+.how .num{display:inline-block;background:#8e5cff;color:#fff;font-weight:700;font-size:22px;border-radius:20px;padding:6px 18px;margin:12px 0 6px}
+.how .t{font-size:clamp(22px,4.6vw,32px);font-weight:600;line-height:1.3;display:flex;align-items:center;gap:12px;justify-content:center;text-align:left}
+.how .t span{flex:1}
+.sw{display:inline-block;width:26px;height:26px;border-radius:7px;border:3px solid #555;vertical-align:middle;margin:0 2px}
+.prog{height:18px;background:#eaf7e2;border-radius:10px;overflow:hidden;margin:12px auto 0;max-width:640px;border:3px solid #fff}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,#8e5cff,#ff4f8b);transition:width .5s}
+.modes{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.mode{background:#fff;border-radius:30px;border:6px solid #fff;padding:16px;box-shadow:0 9px 0 #b9dca8;font-size:26px;font-weight:700;width:min(280px,88vw)}
+.mode svg{width:150px;height:auto;display:block;margin:0 auto 8px}
 /* L5 words */
 .wordGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:640px;margin:0 auto}
 .wcard{background:#fff;border-radius:28px;border:6px solid #fff;padding:12px;box-shadow:0 9px 0 #b9dca8;font-size:clamp(22px,4.6vw,32px);font-weight:700}
@@ -195,9 +208,8 @@ button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
 </div></section>
 
 <section class="screen" id="l4"><div class="wrap">
-  <div class="ask">Make your REAL puppet! <button class="ear" data-say="Now make a real puppet! It can be a paper bag puppet, or a drawing. Look at these puppets other kids made.">👂</button></div>
-  <div class="pics"><figure><img src="img/puppet-fire.jpg" alt="Firefighter puppet example"><figcaption>A firefighter puppet</figcaption></figure><figure><img src="img/puppet-doctor.jpg" alt="Doctor puppet example"><figcaption>A doctor puppet</figcaption></figure></div>
-  <div id="steps4"></div>
+  <div class="ask"><span id="l4ask">Make your REAL puppet!</span> <button class="ear" id="l4ear">👂</button></div>
+  <div id="l4body"></div>
 </div></section>
 
 <section class="screen" id="l5"><div class="wrap">
@@ -308,20 +320,22 @@ function clothesSVG(cl){const c=cl.c,body=`M44 150 h112 v100 h-112 z`;switch(cl.
  case 'uniform':return `<path d="${body}" fill="${c}" stroke="#0003" stroke-width="3"/><path d="M128 172 l5 10 l11 1 l-8 7 l3 11 l-11 -6 l-11 6 l3 -11 l-8 -7 l11 -1z" fill="${cl.x}"/><line x1="100" y1="150" x2="100" y2="250" stroke="#0004" stroke-width="3"/><circle cx="100" cy="190" r="3" fill="#fff"/><circle cx="100" cy="215" r="3" fill="#fff"/>`;
  case 'apron':return `<path d="${body}" fill="#7fb2e5"/><path d="M70 150 h60 v100 h-60 z" fill="#fff" stroke="#bbb" stroke-width="3"/><rect x="82" y="196" width="36" height="22" fill="none" stroke="#bbb" stroke-width="3"/>`;
  case 'overalls':return `<path d="${body}" fill="#e8322b"/><path d="M60 190 h80 v60 h-80 z" fill="${c}" stroke="#0003" stroke-width="3"/><path d="M66 150 v42 M134 150 v42" stroke="${c}" stroke-width="12"/><circle cx="66" cy="192" r="5" fill="#ffd84a"/><circle cx="134" cy="192" r="5" fill="#ffd84a"/>`}return ''}
-function puppetSVG(w,have){have=have||{};const hat=have.hat?hatSVG(w.hat):'',maskTop=w.hat.k==='mask';
- return `<svg viewBox="0 -4 200 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Puppet">
- <rect x="40" y="40" width="120" height="216" rx="10" fill="#c9a26b" stroke="#a57f4a" stroke-width="3"/>
- <path d="M40 140 h120" stroke="#a57f4a" stroke-width="3"/>
- <rect x="14" y="160" width="30" height="70" rx="12" fill="#c9a26b" stroke="#a57f4a" stroke-width="3"/>
- <rect x="156" y="160" width="30" height="70" rx="12" fill="#c9a26b" stroke="#a57f4a" stroke-width="3"/>
- <circle cx="80" cy="88" r="9" fill="#fff" stroke="#333" stroke-width="2"/><circle cx="82" cy="89" r="4" fill="#222"/>
- <circle cx="120" cy="88" r="9" fill="#fff" stroke="#333" stroke-width="2"/><circle cx="122" cy="89" r="4" fill="#222"/>
- <path d="M84 114 Q100 128 116 114" stroke="#7a3b2a" stroke-width="4" fill="none" stroke-linecap="round"/>
- <circle cx="68" cy="108" r="7" fill="#f4978e" opacity=".6"/><circle cx="132" cy="108" r="7" fill="#f4978e" opacity=".6"/>
+function puppetSVG(w,have){have=Object.assign({eyes:1,mouth:1,arms:1},have||{});const hat=have.hat?hatSVG(w.hat):'';
+ const col=have.paper==='color',fill=col?'#f6d7b0':have.paper?'#fff':'#c9a26b',edge=have.paper?'#555':'#a57f4a',dash=have.paper===1||have.paper===true?' stroke-dasharray="7 5"':'';
+ return `<svg viewBox="0 -4 200 ${have.hand?330:300}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Puppet">
+ <rect x="40" y="40" width="120" height="216" rx="10" fill="${fill}" stroke="${edge}" stroke-width="3"${dash}/>
+ ${have.paper?'':`<path d="M40 140 h120" stroke="${edge}" stroke-width="3"/>`}
+ ${have.flap?'<rect x="40" y="40" width="120" height="100" rx="10" fill="#fff59d" opacity=".75"/><text x="100" y="100" font-size="22" font-weight="700" text-anchor="middle" fill="#7a4a00">FACE</text>':''}
+ ${have.arms?`<rect x="14" y="160" width="30" height="70" rx="12" fill="${fill}" stroke="${edge}" stroke-width="3"${dash}/><rect x="156" y="160" width="30" height="70" rx="12" fill="${fill}" stroke="${edge}" stroke-width="3"${dash}/>`:''}
+ ${have.eyes?'<circle cx="80" cy="88" r="9" fill="#fff" stroke="#333" stroke-width="2"/><circle cx="82" cy="89" r="4" fill="#222"/><circle cx="120" cy="88" r="9" fill="#fff" stroke="#333" stroke-width="2"/><circle cx="122" cy="89" r="4" fill="#222"/>':''}
+ ${have.mouth?'<circle cx="100" cy="102" r="4" fill="#d9826a"/><path d="M84 114 Q100 128 116 114" stroke="#7a3b2a" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="68" cy="108" r="7" fill="#f4978e" opacity=".6"/><circle cx="132" cy="108" r="7" fill="#f4978e" opacity=".6"/>':''}
  ${have.clothes?clothesSVG(w.clothes):''}
  ${hat}
  ${have.t0?`<text x="22" y="262" font-size="46" text-anchor="middle">${w.tools[0].e}</text>`:''}
  ${have.t1?`<text x="178" y="262" font-size="46" text-anchor="middle">${w.tools[1].e}</text>`:''}
+ ${have.glow?`<circle cx="${have.glow[0]}" cy="${have.glow[1]}" r="${have.glow[2]}" fill="none" stroke="#ffb300" stroke-width="5" stroke-dasharray="10 6"/>`:''}
+ ${have.hand?'<text x="100" y="322" font-size="58" text-anchor="middle">✋</text><path d="M100 262 v-10" stroke="#ffb300" stroke-width="5"/>':''}
+ ${have.cam?'<text x="170" y="40" font-size="50" text-anchor="middle">📸</text>':''}
  </svg>`}
 function partPic(w,part){if(part==='hat')return `<svg viewBox="${w.hat.k==='mask'?'40 90 120 50':'10 -4 180 80'}">${hatSVG(w.hat)}</svg>`;
  if(part==='clothes')return `<svg viewBox="40 146 120 108">${clothesSVG(w.clothes)}</svg>`;return w.tools[+part[1]].e}
@@ -411,7 +425,7 @@ function drawWho(){$('#whoGrid').innerHTML=WK.map(k=>{const w=W[k];return `<butt
  document.querySelectorAll('.who').forEach(b=>b.onclick=()=>{ac();sfx('pop');pick=b.dataset.k;drawWho();say(W[pick].does)});
  $('#l2pick').innerHTML=pick?`<button class="big green huge pulse" id="pickBtn">PICK ${W[pick].one.toUpperCase()}!</button>`:'';
  if(pick)$('#pickBtn').onclick=()=>{ac();
-  if(S.w&&S.w!==pick&&(S.dress.length||S.sent.some(Boolean))){if(!confirm(`Switch to ${W[pick].one}? Your puppet and sentences will start over.`))return;S.dress=[];S.l4=[];S.words=0;S.sent=[null,null,null];S.facts=false;for(let i=2;i<7;i++)S.done[i]=0}
+  if(S.w&&S.w!==pick&&(S.dress.length||S.sent.some(Boolean))){if(!confirm(`Switch to ${W[pick].one}? Your puppet and sentences will start over.`))return;S.dress=[];S.p4=0;S.l4max=0;S.mode4=null;S.words=0;S.sent=[null,null,null];S.facts=false;for(let i=2;i<7;i++)S.done[i]=0}
   S.w=pick;save();finish(1,`You picked a ${W[pick].one}!`)}}
 
 /* ---------- L3: dress the puppet ---------- */
@@ -430,16 +444,78 @@ function l3Init(){const w=me();drawPup3();
  const ln=`Dress your ${w.one} puppet! Find the special clothes and tools a ${w.one} uses.`;$('#l3ask').textContent=`Dress your ${w.one}!`;$('#l3ear').onclick=()=>say(ln);say(ln)}
 function drawPup3(){$('#pup3').innerHTML=puppetSVG(me(),haveFrom(S.dress))}
 
-/* ---------- L4: make the real puppet ---------- */
-function l4Init(){const w=me();const steps=[
- {e:'🛍️',t:'Get a <b>paper bag</b> or paper. You can also <b>draw</b> your puppet!',s:'Get a paper bag, or a piece of paper. You can also draw your puppet. Both are OK!'},
- {e:'🙂',t:'Make the <b>face</b>: eyes, nose, and a smile.',s:'Make the face. Eyes, a nose, and a smile.'},
- {e:'🧢',t:`Make the <b>${w.hat.n}</b>.`,s:`Make the ${w.hat.n}. That shows your puppet is a ${w.one}.`},
- {e:'👕',t:`Make the <b>${w.clothes.n}</b>.`,s:`Make the ${w.clothes.n}. Special clothes help people know the job.`},
- {e:'🧰',t:`Make the tools: <b>${w.tools[0].n}</b> and <b>${w.tools[1].n}</b>.`,s:`Make the tools. A ${w.tools[0].n}, and a ${w.tools[1].n}. Your teacher wants to see clothes and tools!`},
- {e:'🖍️',t:'<b>Color</b> it and glue it on!',s:'Color your puppet, and glue everything on.'},
- {e:'📸',t:'Ask Mom or Dad to take a <b>picture</b> of your puppet.',s:'Ask Mom or Dad to take a picture of your puppet. You will send it to your teacher.'}];
- stepList('steps4',steps,'l4',()=>finish(3,'You made your puppet!'))}
+/* ---------- L4: make the real puppet, one illustrated step at a time ---------- */
+const HEX={red:'#e8322b',yellow:'#ffd60a',black:'#222',white:'#fff','light blue':'#8fc1ff',orange:'#ff8c1a',gray:'#9aa4ad',green:'#c8f031','dark blue':'#1d2f6f',tan:'#e9c46a',blue:'#3a6fb0'};
+const CRAFT={
+ fire:{hatC:'red',clC:'red',tip:'Glue 2 yellow stripes across the coat.',paper:['red','yellow','black']},
+ doctor:{hatC:'light blue',clC:'white',tip:'Draw a pocket and a pen.',paper:['white','light blue']},
+ trash:{hatC:'orange',clC:'orange',tip:'Glue gray stripes on the vest so cars can see.',paper:['orange','gray']},
+ builder:{hatC:'yellow',clC:'green',tip:'Glue gray stripes on the vest so cars can see.',paper:['yellow','green','gray']},
+ police:{hatC:'dark blue',clC:'dark blue',tip:'Cut a yellow star badge and glue it on.',paper:['dark blue','yellow']},
+ mail:{hatC:'blue',clC:'light blue',tip:'Glue a little red patch on the shirt.',paper:['light blue','blue','red']},
+ baker:{hatC:'white',clC:'white',tip:'Draw a pocket on the apron.',paper:['white','light blue']},
+ farmer:{hatC:'tan',clC:'blue',tip:'Cut 2 straps and draw 2 buttons.',paper:['tan','blue','red']}};
+const swatch=c=>`<span class="sw" style="background:${HEX[c]}"></span>`;
+function cutSVG(inner,vb,label){const [x,y,w,h]=vb.split(' ').map(Number);
+ return `<svg viewBox="${x-20} ${y-20} ${w+40} ${h+50}"><rect x="${x-8}" y="${y-8}" width="${w+16}" height="${h+16}" rx="14" fill="none" stroke="#555" stroke-width="3" stroke-dasharray="9 7"/>${inner}<text x="${x+w+6}" y="${y+h+24}" font-size="${Math.max(30,w/4)}" text-anchor="middle">✂️</text></svg>`}
+function toolCut(t){return cutSVG(`<text x="60" y="96" font-size="90" text-anchor="middle">${t.e}</text>`,'0 0 120 120')}
+function suppliesSVG(draw){const c=CRAFT[S.w];
+ return `<svg viewBox="0 0 320 200">${draw?'<rect x="16" y="20" width="110" height="150" rx="6" fill="#fff" stroke="#999" stroke-width="3"/><path d="M30 50 h80 M30 70 h80" stroke="#cde" stroke-width="3"/>':'<rect x="20" y="30" width="96" height="150" rx="6" fill="#c9a26b" stroke="#a57f4a" stroke-width="3"/><path d="M20 80 h96" stroke="#a57f4a" stroke-width="3"/>'}
+ ${c.paper.map((k,i)=>`<rect x="${140+i*20}" y="${20+i*14}" width="80" height="62" rx="4" fill="${HEX[k]}" stroke="#555" stroke-width="2"/>`).join('')}
+ ${draw?'':'<text x="160" y="170" font-size="44">✂️</text>'}<text x="214" y="172" font-size="44">🖍️</text><text x="266" y="172" font-size="44">${draw?'✏️':'🧴'}</text></svg>`}
+function l4Steps(){const w=me(),c=CRAFT[S.w],P=h=>puppetSVG(w,h),draw=S.mode4==='draw',mask=w.hat.k==='mask';
+ const all={hat:1,clothes:1,t0:1,t1:1,paper:draw?'color':0};
+ const hatGlow=mask?[100,114,40]:[100,40,46];
+ if(!draw)return [
+ {ill:suppliesSVG(false),t:`Get your supplies: a <b>paper bag</b>, colored paper ${c.paper.map(swatch).join('')}, <b>scissors</b>, <b>glue</b>, and <b>crayons</b>.`,s:`Get your supplies. A paper bag, colored paper, ${c.paper.join(', ')}, scissors, glue, and crayons.`},
+ {ill:P({eyes:0,mouth:0,arms:0,flap:1}),t:'Lay the bag flat with the <b>flap on top</b>. The flap is the <b>face</b>!',s:'Lay the bag flat with the flap on top. The flap is the puppet\'s face!'},
+ {ill:P({mouth:0,arms:0,glow:[100,88,36]}),t:'Draw two <b>eyes</b> on the flap.',s:'Draw two eyes on the flap.'},
+ {ill:P({arms:0,glow:[100,110,28]}),t:'Draw a <b>nose</b> and a big <b>smile</b>.',s:'Draw a nose, and a big smile.'},
+ {ill:cutSVG(hatSVG(w.hat),mask?'60 94 80 42':'14 2 172 72'),t:`Cut a <b>${w.hat.n}</b> out of ${swatch(c.hatC)} ${c.hatC} paper. Ask a grown-up to help with scissors.`,s:`Cut a ${w.hat.n} out of ${c.hatC} paper. Ask a grown-up to help with the scissors.`},
+ {ill:P({arms:0,hat:1,glow:hatGlow}),t:`Glue the ${w.hat.n} ${mask?'over the mouth':'on top of the flap'}.`,s:`Glue the ${w.hat.n} ${mask?'over the mouth':'on top of the flap'}.`},
+ {ill:cutSVG(clothesSVG(w.clothes),'44 150 112 100'),t:`Cut a big rectangle of ${swatch(c.clC)} ${c.clC} paper for the <b>${w.clothes.n}</b>.`,s:`Cut a big rectangle of ${c.clC} paper for the ${w.clothes.n}.`},
+ {ill:P({arms:0,hat:1,clothes:1,glow:[100,200,62]}),t:`Glue the ${w.clothes.n} under the flap. ${c.tip}`,s:`Glue the ${w.clothes.n} under the flap. ${c.tip}`},
+ {ill:P({hat:1,clothes:1,glow:[100,195,100]}),t:'Cut 2 paper strips for <b>arms</b>. Glue one on each side.',s:'Cut two strips of paper for arms. Glue one on each side.'},
+ {ill:toolCut(w.tools[0]),t:`Draw a <b>${w.tools[0].n}</b> on paper. Color it and cut it out.`,s:`Draw a ${w.tools[0].n} on paper. Color it, and cut it out.`},
+ {ill:P({hat:1,clothes:1,t0:1,glow:[24,248,28]}),t:`Glue the ${w.tools[0].n} on one hand.`,s:`Glue the ${w.tools[0].n} on one hand.`},
+ {ill:toolCut(w.tools[1]),t:`Draw a <b>${w.tools[1].n}</b> on paper. Color it and cut it out.`,s:`Draw a ${w.tools[1].n} on paper. Color it, and cut it out.`},
+ {ill:P({hat:1,clothes:1,t0:1,t1:1,glow:[176,248,28]}),t:`Glue the ${w.tools[1].n} on the other hand.`,s:`Glue the ${w.tools[1].n} on the other hand.`},
+ {ill:P({...all,hand:1}),t:'Put your hand inside the bag. Open and close your fingers to make it <b>talk</b>!',s:'Put your hand inside the bag. Open and close your fingers to make your puppet talk!'},
+ {ill:P({...all,cam:1}),t:'Ask Mom or Dad to take a <b>picture</b> of your puppet.',s:'Ask Mom or Dad to take a picture of your puppet. You will send it to your teacher.'}];
+ return [
+ {ill:suppliesSVG(true),t:'Get your supplies: <b>paper</b>, a <b>pencil</b>, and <b>crayons</b>.',s:'Get your supplies. Paper, a pencil, and crayons.'},
+ {ill:P({paper:1,eyes:0,mouth:0,arms:0}),t:'Draw a big tall <b>body</b> in the middle of your paper.',s:'Draw a big, tall body in the middle of your paper.'},
+ {ill:P({paper:1,mouth:0,arms:0,glow:[100,88,36]}),t:'Draw two <b>eyes</b> near the top.',s:'Draw two eyes near the top.'},
+ {ill:P({paper:1,arms:0,glow:[100,110,28]}),t:'Draw a <b>nose</b> and a big <b>smile</b>.',s:'Draw a nose, and a big smile.'},
+ {ill:P({paper:1,arms:0,hat:1,glow:hatGlow}),t:`Draw the <b>${w.hat.n}</b>. Color it ${swatch(c.hatC)} ${c.hatC}.`,s:`Draw the ${w.hat.n}. Color it ${c.hatC}.`},
+ {ill:P({paper:1,arms:0,hat:1,clothes:1,glow:[100,200,62]}),t:`Draw the <b>${w.clothes.n}</b>. Color it ${swatch(c.clC)} ${c.clC}. ${c.tip.replace('Glue','Draw').replace('Cut','Draw')}`,s:`Draw the ${w.clothes.n}. Color it ${c.clC}. ${c.tip.replace('Glue','Draw').replace('Cut','Draw')}`},
+ {ill:P({paper:1,hat:1,clothes:1,glow:[100,195,100]}),t:'Draw two <b>arms</b>, one on each side.',s:'Draw two arms, one on each side.'},
+ {ill:P({paper:1,hat:1,clothes:1,t0:1,glow:[24,248,28]}),t:`Draw a <b>${w.tools[0].n}</b> in one hand.`,s:`Draw a ${w.tools[0].n} in one hand.`},
+ {ill:P({paper:1,hat:1,clothes:1,t0:1,t1:1,glow:[176,248,28]}),t:`Draw a <b>${w.tools[1].n}</b> in the other hand.`,s:`Draw a ${w.tools[1].n} in the other hand.`},
+ {ill:P({hat:1,clothes:1,t0:1,t1:1,paper:'color'}),t:'<b>Color</b> everything in. Use bright colors!',s:'Color everything in. Use bright colors!'},
+ {ill:P({...all,cam:1}),t:'Ask Mom or Dad to take a <b>picture</b> of your drawing.',s:'Ask Mom or Dad to take a picture of your drawing. You will send it to your teacher.'}]}
+function l4Init(){if(typeof S.p4!=='number')S.p4=0;
+ if(!S.mode4){const w=me();
+  $('#l4ask').textContent='How do you want to make it?';const ln=`How do you want to make your ${w.one} puppet? A paper bag puppet, or a drawing? Both are OK!`;$('#l4ear').onclick=()=>say(ln);
+  $('#l4body').innerHTML=`<div class="pics"><figure><img src="img/puppet-fire.jpg" alt="Firefighter puppet example"><figcaption>A firefighter puppet</figcaption></figure><figure><img src="img/puppet-doctor.jpg" alt="Doctor puppet example"><figcaption>A doctor puppet</figcaption></figure></div>
+   <div class="modes"><button class="mode" data-m="bag">${puppetSVG(w,{hat:1,clothes:1,t0:1,t1:1})}🛍️ Paper bag puppet</button><button class="mode" data-m="draw">${puppetSVG(w,{hat:1,clothes:1,t0:1,t1:1,paper:1})}🖍️ Draw it</button></div>`;
+  document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{ac();sfx('pop');S.mode4=b.dataset.m;S.p4=0;save();l4Init()});say(ln);return}
+ l4Card()}
+function l4Card(){const steps=l4Steps(),i=S.p4,w=me();
+ $('#l4ask').textContent=S.mode4==='draw'?`Draw your ${w.one}!`:`Make your ${w.one} puppet!`;
+ if(i>=steps.length){$('#l4body').innerHTML=`<div class="how"><div class="ill">${puppetSVG(w,{hat:1,clothes:1,t0:1,t1:1,paper:S.mode4==='draw'?'color':0})}</div><div class="t" style="margin-top:12px"><span style="text-align:center">🎉 Your puppet is done!</span></div>
+   <button class="big blue" id="l4again">↩ SEE STEPS AGAIN</button><button class="big purple" id="l4mode">🔁 ${S.mode4==='draw'?'MAKE A BAG PUPPET':'DRAW IT INSTEAD'}</button><button class="big green" id="l4map">🗺️ TOWN</button></div>`;
+  $('#l4again').onclick=()=>{ac();S.p4=0;save();l4Card()};$('#l4mode').onclick=()=>{ac();S.mode4=S.mode4==='draw'?'bag':'draw';S.p4=0;save();l4Card()};$('#l4map').onclick=()=>show('map');
+  $('#l4ear').onclick=()=>say('Your puppet is done!');return}
+ const st=steps[i];
+ $('#l4body').innerHTML=`<div class="prog"><i style="width:${i/steps.length*100}%"></i></div><div class="how"><div class="ill">${st.ill}</div>
+  <div class="num">Step ${i+1} of ${steps.length}</div>
+  <div class="t"><span>${st.t}</span><button class="ear" data-say="${esc(st.s)}">👂</button></div>
+  <div style="margin-top:12px">${i>0?'<button class="big blue" id="l4back">◀ BACK</button>':'<button class="big blue" id="l4switch">🔁 CHANGE</button>'}<button class="big green pulse" id="l4ok">I DID IT ✅</button></div></div>`;
+ $('#l4ear').onclick=()=>say(st.s);say(`Step ${i+1}. ${st.s}`);
+ if(i>0)$('#l4back').onclick=()=>{ac();sfx('pop');S.p4--;save();l4Card()};else $('#l4switch').onclick=()=>{ac();S.mode4=null;save();l4Init()};
+ $('#l4ok').onclick=()=>{ac();const r=$('#l4ok').getBoundingClientRect();S.l4max=Math.max(S.l4max||0,i+1);if(S.l4max===i+1)addCoins(2,r.x+r.width/2,r.y);else sfx('pop');S.p4=i+1;save();
+  if(S.p4>=steps.length){finish(3,'You made your puppet!');return}l4Card();$('#l4').scrollTop=0}}
 function stepList(id,steps,key,onAll){const cur=steps.findIndex((_,i)=>!S[key].includes(i));
  $('#'+id).innerHTML=steps.map((st,i)=>`<div class="step ${S[key].includes(i)?'done':i===cur?'now':''}"><span class="n">${i+1}</span><span class="e">${st.e}</span><span class="t">${st.t}</span><button class="ear" data-say="${esc(st.s)}">👂</button>${S[key].includes(i)?'<span style="font-size:40px">✅</span>':`<button class="big green ok" data-i="${i}">I did it ✅</button>`}</div>`).join('');
  document.querySelectorAll('#'+id+' .ok').forEach(b=>b.onclick=()=>{ac();const i=+b.dataset.i;if(!S[key].includes(i))S[key].push(i);save();const r=b.getBoundingClientRect();addCoins(2,r.x,r.y);
@@ -516,7 +592,7 @@ function l7Init(){const w=me();$('#pup7').innerHTML=puppetSVG(w,haveFrom(PARTS))
  $('#show7').innerHTML=`<div style="font-size:22px;font-weight:700;color:#8e5cff">My community helper: a ${w.one}</div>`+ss.map(t=>`<p>${esc(t)}</p>`).join('');
  drawChecks();say(`Wow! Your ${w.one} puppet is ready for the show! Let's check your work with the teacher checklist.`)}
 function drawChecks(){const w=me(),ss=S.sent.filter(s=>s&&s.ok),vu=vocabUsed(),okP=ss.every((s,i)=>!problem(s,S.sent.indexOf(s)));
- const puppetOk=[2,3,4].every(i=>S.l4.includes(i));
+ const puppetOk=!!S.done[3];
  const rows=[
   {ok:puppetOk,t:`<b>Puppet:</b> special clothes AND tools (${w.hat.n}, ${w.clothes.n}, ${w.tools[0].n}, ${w.tools[1].n})`,fix:'l4',s:'Your real puppet needs special clothes and tools.'},
   {ok:ss.length===3,t:'<b>Description:</b> 3 sentences with 3 details about the job',fix:'l6',s:'Write 3 sentences with 3 details.'},
@@ -527,7 +603,7 @@ function drawChecks(){const w=me(),ss=S.sent.filter(s=>s&&s.ok),vu=vocabUsed(),o
  document.querySelectorAll('#checks [data-c]').forEach(b=>b.onclick=()=>{ac();const r=rows[+b.dataset.c];
   if(r.btn){S.facts=true;save();sfx('coin');drawChecks();say('Great! Your facts are true!');return}
   if(r.fix==='l6r'){if(!confirm('Rewrite your sentences to use more job words?'))return;S.sent=[null,null,null];S.done[5]=0;S.done[6]=0;save();show('l6');return}
-  if(r.fix==='l4'){S.l4=S.l4.filter(i=>i<2);save()}
+  if(r.fix==='l4'){S.p4=0;save()}
   show(r.fix)});
  if(rows.every(r=>r.ok)&&!S.done[6]){S.done[6]=1;save();later(()=>{addCoins(20);showOv('🎪','Checklist all done!','Your checklist is all done! Now take a picture of your puppet and send it to your teacher!')},1200)}}
 $('#readBtn').onclick=()=>{ac();say(S.sent.filter(s=>s&&s.ok).map(full).join(' '))};
