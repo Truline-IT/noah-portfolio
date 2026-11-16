@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-title" content="Helper Town">
 <meta name="theme-color" content="#7fd36b">
 <title>Noah's Helper Town</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%91%AE%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#2b3a1f;--hi:#ff7a00}
@@ -94,7 +95,7 @@ button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
 .step .e{font-size:54px;flex:0 0 auto}
 .step .t{flex:1;font-size:clamp(19px,3.8vw,27px);font-weight:600;line-height:1.25}
 .step .ok{min-height:72px;padding:8px 18px;font-size:22px;margin:0}
-@media(max-width:600px){.step{flex-wrap:wrap}.step .t{flex:1 1 55%}.step .ok{width:100%}.pupBox{width:min(330px,72vw)}}
+@media(max-width:600px){.step{flex-wrap:wrap}.step .t{flex:1 1 55%}.step .ok{width:100%}.pupBox{width:min(330px,52vw)}.items{min-width:0}}
 .pics{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .pics figure{margin:0;background:#fff;border-radius:24px;padding:8px;box-shadow:0 8px 0 #b9dca8;width:min(260px,44vw)}
 .pics img{width:100%;border-radius:18px;display:block}
@@ -125,7 +126,7 @@ button{font-family:inherit;cursor:pointer;border:none;padding:0;color:inherit}
 .starter:active{transform:translateY(5px);box-shadow:0 1px 0 #1f7fc2}
 .line{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:clamp(22px,4.6vw,32px);font-weight:600;background:#fffbe9;border-radius:22px;padding:12px;border:4px dashed #ffc94a}
 .line .st{color:#1f6fb8;font-weight:700}
-.line input{flex:1;min-width:200px;font:inherit;font-size:clamp(22px,4.6vw,32px);border:4px solid #2a9df4;border-radius:18px;padding:8px 12px;-webkit-user-select:text;user-select:text;color:var(--ink);background:#fff}
+.line textarea{flex:1 1 100%;min-width:200px;resize:none;line-height:1.3;font:inherit;font-size:clamp(22px,4.6vw,32px);border:4px solid #2a9df4;border-radius:18px;padding:8px 12px;-webkit-user-select:text;user-select:text;color:var(--ink);background:#fff}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .chip{background:#fff3c4;border:3px solid #ffd84a;border-radius:18px;padding:6px 12px;font-size:20px;font-weight:700}
 .msg{margin-top:10px;font-size:clamp(19px,3.8vw,25px);font-weight:700;min-height:1.3em}
@@ -447,7 +448,9 @@ function l3Init(){const w=me();drawPup3();
    if(PARTS.every(p=>S.dress.includes(p)))later(()=>finish(2,'Your puppet is dressed!'),2200)}
   else{sfx('boing');b.classList.remove('wig');void b.offsetWidth;b.classList.add('wig');say(`Hmm, a ${it.n} is for a ${W[it.k].one}. Not a ${w.one}!`)}});
  const ln=`Dress your ${w.one} puppet! Find the special clothes and tools a ${w.one} uses.`;$('#l3ask').textContent=`Dress your ${w.one}!`;$('#l3ear').onclick=()=>say(ln);say(ln)}
-function drawPup3(){$('#pup3').innerHTML=puppetSVG(me(),haveFrom(S.dress))}
+function myPuppet(h){const w=me();if(S.mode4==='bag')return puppetSVG(w,h);if(S.mode4==='draw')return puppetSVG(w,{...h,paper:'color'});
+ return dollSVG(w,{head:1,face:1,arms:1,legs:1,body:1,plain:!h.clothes,detail:h.clothes,hat:h.hat,t0:h.t0,t1:h.t1})}
+function drawPup3(){$('#pup3').innerHTML=myPuppet(haveFrom(S.dress))}
 
 /* ---------- L4: make the real puppet, one illustrated step at a time ---------- */
 const HEX={red:'#e8322b',yellow:'#ffd60a',black:'#222',white:'#fff','light blue':'#8fc1ff',orange:'#ff8c1a',gray:'#9aa4ad',green:'#c8f031','dark blue':'#1d2f6f',tan:'#e9c46a',blue:'#3a6fb0'};
@@ -482,10 +485,10 @@ const CP={
  farmer:{body:'red',bodyN:'shirt',hatC:'yellow',pants:'blue',shoes:'brown',det:{c:'blue',n:'overalls',t:'Cut a blue square and 2 thin blue straps. Glue them on for the overalls.'}}};
 const SKIN='tan';
 const cn=c=>c+(ALT[c]?` (${ALT[c]})`:'');
-function dollSVG(w,h){h=h||{};const c=CP[S.w],sk=HEX[SKIN],bc=HEX[c.body];
+function dollSVG(w,h){h=h||{};const c=CP[S.w],sk=HEX[SKIN],bc=h.plain?'#e6e6e6':HEX[c.body];
  return `<svg viewBox="0 -4 200 ${h.hand?336:318}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Paper puppet">
  ${h.stick?'<rect x="90" y="140" width="20" height="190" rx="8" fill="#e3b778" stroke="#a57f4a" stroke-width="3"/>':''}
- ${h.legs?`<rect x="58" y="246" width="34" height="48" fill="${HEX[c.pants]}" stroke="#0003" stroke-width="3"/><rect x="108" y="246" width="34" height="48" fill="${HEX[c.pants]}" stroke="#0003" stroke-width="3"/><ellipse cx="72" cy="300" rx="24" ry="11" fill="${HEX[c.shoes]}"/><ellipse cx="128" cy="300" rx="24" ry="11" fill="${HEX[c.shoes]}"/>`:''}
+ ${h.legs?`<rect x="58" y="246" width="34" height="48" fill="${h.plain?'#cfcfcf':HEX[c.pants]}" stroke="#0003" stroke-width="3"/><rect x="108" y="246" width="34" height="48" fill="${h.plain?'#cfcfcf':HEX[c.pants]}" stroke="#0003" stroke-width="3"/><ellipse cx="72" cy="300" rx="24" ry="11" fill="${HEX[c.shoes]}"/><ellipse cx="128" cy="300" rx="24" ry="11" fill="${HEX[c.shoes]}"/>`:''}
  ${h.arms?`<rect x="14" y="154" width="32" height="66" rx="12" fill="${bc}" stroke="#0003" stroke-width="3"/><rect x="154" y="154" width="32" height="66" rx="12" fill="${bc}" stroke="#0003" stroke-width="3"/><circle cx="30" cy="228" r="13" fill="${sk}" stroke="#0003" stroke-width="2"/><circle cx="170" cy="228" r="13" fill="${sk}" stroke="#0003" stroke-width="2"/>`:''}
  ${h.body?(h.detail?clothesSVG(w.clothes):`<rect x="44" y="150" width="112" height="100" fill="${bc}" stroke="#0003" stroke-width="3"/>`):''}
  ${h.head?`<circle cx="100" cy="94" r="48" fill="${sk}" stroke="#a57f4a" stroke-width="3"/>`:''}
@@ -637,7 +640,7 @@ const full=s=>(s.st+' '+s.tx).replace(/\s+/g,' ').trim();
 function drawDetail(d){const w=me(),n=l6cur.n;
  $('#l6now').innerHTML=`<div class="detail"><h3><span style="font-size:44px">${d.ic}</span>${d.h}<button class="ear" data-say="${esc(d.q)}">👂</button></h3>
   ${l6cur.st?'':`<div style="font-size:22px;font-weight:600">Tap how you want to start:</div><div class="starters">${d.st.map((s,i)=>`<button class="starter" data-i="${i}">${esc(s)} ...</button>`).join('')}</div>`}
-  ${l6cur.st?`<div class="line"><span class="st">${esc(l6cur.st)}</span><input id="tx" autocomplete="off" autocapitalize="off" spellcheck="true" placeholder="type the rest..." value="${esc(S.sent[n]?.tx||'')}"></div>
+  ${l6cur.st?`<div class="line"><span class="st">${esc(l6cur.st)}</span><textarea id="tx" rows="2" autocomplete="off" autocapitalize="off" spellcheck="true" placeholder="type the rest...">${esc(S.sent[n]?.tx||'')}</textarea></div>
   <div style="font-size:18px;font-weight:700;margin-top:10px">🧰 Word tools (tap to add):</div><div class="chips">${[...w.words.map(x=>x[0]),w.tools[0].n,w.tools[1].n,w.hat.n,w.clothes.n].filter((v,i,a)=>a.indexOf(v)===i).map(x=>`<button class="chip">${esc(x)}</button>`).join('')}</div>
   <div class="msg" id="msg"></div>
   <button class="big blue" id="newStart">↩ NEW START</button><button class="big green" id="checkBtn">✔ CHECK IT</button>`:''}</div>`;
@@ -646,7 +649,7 @@ function drawDetail(d){const w=me(),n=l6cur.n;
   sfx('pop');l6cur.st=d.st[i];drawDetail(d);say(`${d.st[i]}. Now you type the rest!`);setTimeout(()=>$('#tx')?.focus(),200)});return}
  const tx=$('#tx');
  document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ac();sfx('pop');const v=tx.value,pos=tx.selectionStart??v.length;const before=v.slice(0,pos),after=v.slice(pos);
-  const add=(before&&!/\s$/.test(before)?' ':'')+c.textContent+(after&&!/^\s/.test(after)?' ':'');tx.value=before+add+after;const np=(before+add).length;tx.focus();tx.setSelectionRange(np,np);say(c.textContent)});
+  const add=(before&&!/\s$/.test(before)?' ':'')+c.textContent+(after&&!/^\s/.test(after)?' ':'');tx.value=before+add+after;const np=(before+add).length;tx.dispatchEvent(new Event('input'));tx.focus();tx.setSelectionRange(np,np);say(c.textContent)});
  $('#newStart').onclick=()=>{ac();l6cur.st=null;S.sent[n]=null;save();drawDetail(d)};
  $('#checkBtn').onclick=()=>{ac();const s={st:l6cur.st,tx:tx.value.trim()};S.sent[n]=s;save();const p=problem(s,n);const m=$('#msg');
   if(p){sfx('boing');m.className='msg bad';m.textContent=p.t;say(p.s||p.t);
@@ -654,6 +657,7 @@ function drawDetail(d){const w=me(),n=l6cur.n;
     $('#okSpell').onclick=()=>{S.okWords=[...(S.okWords||[]),p.soft];save();$('#checkBtn').click()}}
    return}
   s.ok=true;S.sent[n]=s;save();m.className='msg ok';m.textContent='Great sentence!';const r=$('#checkBtn').getBoundingClientRect();addCoins(5,r.x+r.width/2,r.y);say(full(s)+'. Great sentence!');later(l6Init,3200)};
+ const grow=()=>{tx.style.height='auto';tx.style.height=tx.scrollHeight+6+'px'};tx.addEventListener('input',grow);grow();
  tx.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#checkBtn').click()}})}
 /* spelling help: only flags near-misses of words he is likely to use */
 const COMMON='people community because help helps they them their there when with when what make makes give gives keep keeps safe sick fires fire trucks truck house houses home homes food town city kids children school clean work works and the have every day night water hose put out take bring brings drive drives friend friends important need needs everyone hose hoses boots helmet helmets coat coats wear wears uses save saves water truck rescue rescues sirens animals cats trees store money buy sell sells bakes grows cooks letters drives hospital patients nurses'.split(' ');
@@ -673,7 +677,7 @@ function problem(s,n){const tx=s.tx,f=full(s);
 
 /* ---------- L7: puppet show, rubric checklist, send ---------- */
 function vocabUsed(){const w=me();const bank=[...w.words.map(x=>x[0]),w.tools[0].n,w.tools[1].n,w.hat.n,w.clothes.n];const txt=S.sent.filter(Boolean).map(full).join(' ').toLowerCase();return bank.filter((b,i,a)=>a.indexOf(b)===i&&txt.includes(b.toLowerCase()))}
-function l7Init(){const w=me();$('#pup7').innerHTML=puppetSVG(w,haveFrom(PARTS));
+function l7Init(){const w=me();$('#pup7').innerHTML=myPuppet(haveFrom(PARTS));
  const ss=S.sent.filter(s=>s&&s.ok).map(full);
  $('#show7').innerHTML=`<div style="font-size:22px;font-weight:700;color:#8e5cff">My community helper: a ${w.one}</div>`+ss.map(t=>`<p>${esc(t)}</p>`).join('');
  drawChecks();say(`Wow! Your ${w.one} puppet is ready for the show! Let's check your work with the teacher checklist.`)}
